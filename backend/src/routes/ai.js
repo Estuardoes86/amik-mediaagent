@@ -39,7 +39,7 @@ aiRouter.post('/chat', async (req, res, next) => {
       : SYSTEM_PROMPT;
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1024,
       system: systemWithContext,
       messages: messages.slice(-20) // last 20 turns max
@@ -66,7 +66,7 @@ aiRouter.post('/stream', async (req, res, next) => {
     res.setHeader('Connection', 'keep-alive');
 
     const stream = await anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1024,
       system: systemWithContext,
       messages: messages.slice(-20)
@@ -100,7 +100,7 @@ aiRouter.post('/analyze', async (req, res, next) => {
     const prompt = `${prompts[analysisType] || prompts.audit}\n\nCliente: ${clientName || 'N/A'}\n\nDatos:\n${JSON.stringify(data, null, 2)}`;
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: prompt }]
