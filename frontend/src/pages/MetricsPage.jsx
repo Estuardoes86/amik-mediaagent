@@ -1,281 +1,343 @@
 import React, { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid, PieChart, Pie, Cell, Legend
+  LineChart, Line, CartesianGrid, PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
 import { useMetaCampaigns, useGoogleCampaigns, useMetaInsights } from '../hooks/useData.js';
 import { useApp } from '../context/AppContext.jsx';
 
-function KpiCard({ label, value, change, changeDir, subtitle, accent }) {
-  return (
-    <div style={{
-      background: 'var(--bg2)', border: '0.5px solid var(--border)', padding: '20px',
-      borderTop: accent ? `2px solid ${accent}` : undefined
-    }}>
-      <div style={{ fontSize: 11, color: 'var(--text3)', letterSpacing: '1px', marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)' }}>{value ?? '—'}</div>
-      {change && (
-        <div style={{ fontSize: 11, marginTop: 4, color: changeDir === 'up' ? 'var(--green)' : 'var(--red)' }}>
-          {changeDir === 'up' ? '▲' : '▼'} {change}
-        </div>
-      )}
-      {subtitle && <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>{subtitle}</div>}
-    </div>
-  );
-}
+const C = {
+  gold: '#DCA145', green: '#2DD4A0', blue: '#5B8DB8',
+  red: '#E8445A', slate: '#30373F', text3: '#5C6470'
+};
 
-const CustomTooltip = ({ active, payload, label }) => {
+const Tooltip_ = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: 'var(--bg3)', border: '0.5px solid var(--border2)', padding: '8px 14px', fontSize: 12 }}>
-      <div style={{ color: 'var(--text2)', marginBottom: 4 }}>{label}</div>
+    <div style={{
+      background: '#1C1C25', border: '1px solid rgba(220,161,69,.25)',
+      padding: '10px 16px', borderRadius: 8, fontSize: 12,
+      boxShadow: '0 8px 24px rgba(0,0,0,.5)'
+    }}>
+      <div style={{ color: '#9CA3AA', marginBottom: 6, fontFamily: 'var(--font-semi)', fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' }}>{label}</div>
       {payload.map((p, i) => (
-        <div key={i} style={{ color: p.color }}>{p.name}: {p.value}</div>
+        <div key={i} style={{ color: p.color, fontFamily: 'var(--font-semi)', fontWeight: 600 }}>
+          {p.name}: <span style={{ color: '#F0EDE8' }}>{p.value?.toLocaleString?.() ?? p.value}</span>
+        </div>
       ))}
     </div>
   );
 };
 
-const PLATFORM_COLORS = { Meta: '#4a9eff', Google: '#f5c842' };
+function KpiCard({ label, value, sub, delta, deltaDir, accent, delay }) {
+  return (
+    <div className={`kpi-card ${accent || ''}`} style={{ animationDelay: `${delay || 0}s` }}>
+      <div className="kpi-label">{label}</div>
+      <div className={`kpi-value ${accent === 'accent' ? 'gold-val' : accent === 'green' ? 'green-val' : ''}`}>
+        {value ?? '—'}
+      </div>
+      {delta && (
+        <div className={`kpi-delta ${deltaDir}`}>
+          {deltaDir === 'up' ? '▲' : '▼'} {delta}
+        </div>
+      )}
+      {sub && <div className="kpi-sub">{sub}</div>}
+    </div>
+  );
+}
 
 export default function MetricsPage() {
   const { activeClient } = useApp();
   const { campaigns: metaCampaigns, summary: metaSummary, loading: metaLoading } = useMetaCampaigns();
   const { campaigns: googleCampaigns, summary: googleSummary, loading: googleLoading } = useGoogleCampaigns();
-  const { insights } = useMetaInsights();
-  const [activeChart, setActiveChart] = useState('spend');
+  const [chartTab, setChartTab] = useState('spend');
 
-  const hasMetaId = !!activeClient.metaAccountId;
+  const hasMetaId  = !!activeClient.metaAccountId;
   const hasGoogleId = !!activeClient.googleCustomerId;
   const isDemo = !hasMetaId && !hasGoogleId;
   const isLoading = metaLoading || googleLoading;
 
-  // ── Computed totals ──────────────────────────────────────────────
-  const metaSpend = parseFloat(metaSummary.spend || 0);
-  const googleSpend = parseFloat(googleSummary.spend || 0);
+  /* ── Computed numbers ── */
+  const metaSpend  = parseFloat(metaSummary.spend  || 0);
+  const googleSpend= parseFloat(googleSummary.spend || 0);
   const totalSpend = metaSpend + googleSpend;
 
-  const metaLeads = parseInt(metaSummary.leads || 0);
+  const metaLeads  = parseInt(metaSummary.leads || 0);
   const googleConv = parseInt(googleSummary.conversions || 0);
   const totalLeads = metaLeads + googleConv;
 
-  const metaClics = parseInt(metaSummary.clicks || 0);
-  const googleClics = parseInt(googleSummary.clicks || 0);
+  const metaClics  = parseInt(metaSummary.clicks || 0);
+  const googleClics= parseInt(googleSummary.clicks || 0);
   const totalClics = metaClics + googleClics;
 
-  const cplMeta = metaLeads > 0 ? (metaSpend / metaLeads).toFixed(2) : null;
-  const cplGoogle = googleConv > 0 ? (googleSpend / googleConv).toFixed(2) : null;
-  const cplTotal = totalLeads > 0 ? (totalSpend / totalLeads).toFixed(2) : null;
+  const metaImpr   = parseInt(metaSummary.impressions || 0);
+  const metaCtr    = parseFloat(metaSummary.ctr  || 0);
+  const metaCpm    = parseFloat(metaSummary.cpm  || 0);
 
-  const metaCtr = parseFloat(metaSummary.ctr || 0);
-  const metaCpm = parseFloat(metaSummary.cpm || 0);
+  const cplMeta    = metaLeads  > 0 ? (metaSpend  / metaLeads ).toFixed(2) : null;
+  const cplGoogle  = googleConv > 0 ? (googleSpend/ googleConv).toFixed(2) : null;
+  const cplTotal   = totalLeads > 0 ? (totalSpend / totalLeads).toFixed(2) : null;
+  const cpcGoogle  = googleClics> 0 ? (googleSpend/ googleClics).toFixed(2): null;
 
-  // ── Campaign-level chart data ────────────────────────────────────
-  const campaignChart = useMemo(() => {
+  /* ── Demo values ── */
+  const D = {
+    spend: 'S/ 184,000', metaSpend: 'S/ 142,000', googleSpend: 'S/ 42,000',
+    leads: '3,847', metaLeads: '3,207', googleConv: '640',
+    cplTotal: 'S/ 47.83', cplMeta: 'S/ 44.27', cplGoogle: 'S/ 65.63',
+    clics: '28,420', metaClics: '20,000', googleClics: '8,420',
+    impr: '18.7M', ctr: '2.8%', cpm: 'S/ 7.58',
+    cpc: 'S/ 4.99', campActivas: '6', alcance: '2.1M',
+  };
+
+  /* ── Campaign chart ── */
+  const campaignData = useMemo(() => {
     if (metaCampaigns.length > 0) {
-      return metaCampaigns.slice(0, 10).map(c => {
+      return metaCampaigns.slice(0, 8).map(c => {
         const spend = parseFloat(c.metrics?.spend || 0);
         const leads = parseInt(c.metrics?.actions?.find(a => a.action_type === 'lead')?.value || 0);
         const clics = parseInt(c.metrics?.clicks || 0);
-        const cpl = leads > 0 ? parseFloat((spend / leads).toFixed(2)) : 0;
+        const impr  = parseInt(c.metrics?.impressions || 0);
+        const cpl   = leads > 0 ? parseFloat((spend / leads).toFixed(2)) : 0;
         return {
-          name: (c.name || 'Campaña').replace(/2026_\d+_/g, '').substring(0, 22),
-          spend: parseFloat(spend.toFixed(0)),
-          leads,
-          clics,
-          cpl
+          name: (c.name || '').replace(/2026_\d+_LEADS?_/i, '').replace(/_FORM$/i,'').substring(0, 20),
+          spend: parseFloat(spend.toFixed(0)), leads, clics, impr, cpl
         };
       });
     }
     return [
-      { name: 'Admisiones Lima', spend: 4200, leads: 88, clics: 2100, cpl: 47.7 },
-      { name: 'Posgrados Lima', spend: 3800, leads: 72, clics: 1900, cpl: 52.8 },
-      { name: 'Medicina Ica', spend: 2600, leads: 94, clics: 1400, cpl: 27.7 },
-      { name: 'Remarketing', spend: 1800, leads: 55, clics: 980, cpl: 32.7 },
-      { name: 'Distancia', spend: 2900, leads: 102, clics: 1800, cpl: 28.4 },
-      { name: 'Branding', spend: 1500, leads: 18, clics: 650, cpl: 83.3 },
+      { name: 'MEDICINA HUMANA',    spend: 4200, leads: 94, clics: 2100, impr: 82000, cpl: 44.7 },
+      { name: 'ENFERMERIA',         spend: 3800, leads: 88, clics: 1900, impr: 71000, cpl: 43.2 },
+      { name: 'PSICOLOGIA',         spend: 2600, leads: 72, clics: 1400, impr: 54000, cpl: 36.1 },
+      { name: 'DERECHO',            spend: 1800, leads: 48, clics: 980,  impr: 38000, cpl: 37.5 },
+      { name: 'ADMINISTRACION',     spend: 1500, leads: 38, clics: 820,  impr: 31000, cpl: 39.5 },
+      { name: 'DISTANCIA',          spend: 2900, leads: 102,clics: 1800, impr: 69000, cpl: 28.4 },
+      { name: 'BRANDING',           spend: 1500, leads: 18, clics: 650,  impr: 43000, cpl: 83.3 },
     ];
   }, [metaCampaigns]);
 
-  // ── Platform pie data ────────────────────────────────────────────
-  const pieData = [
-    { name: 'Meta Ads', value: isDemo ? 142000 : metaSpend },
-    { name: 'Google Ads', value: isDemo ? 42000 : googleSpend },
+  /* ── Tendencia semanal ── */
+  const trendData = [
+    { s: 'S1', meta: 38000, google: 9200, leads: 820, cpl: 54 },
+    { s: 'S2', meta: 41000, google: 10100,leads: 910, cpl: 56 },
+    { s: 'S3', meta: 44000, google: 10800,leads: 1020,cpl: 53 },
+    { s: 'S4', meta: 40000, google: 9900, leads: 980, cpl: 51 },
+    { s: 'S5', meta: 43500, google: 10400,leads: 1050,cpl: 51 },
+    { s: 'S6', meta: 46000, google: 11200,leads: 1090,cpl: 52 },
   ];
 
-  // ── Trend (demo weekly) ──────────────────────────────────────────
-  const trendData = [
-    { week: 'S1', meta: 38000, google: 9200, leads: 88 },
-    { week: 'S2', meta: 41000, google: 10100, leads: 97 },
-    { week: 'S3', week: 'S3', meta: 44000, google: 10800, leads: 112 },
-    { week: 'S4', meta: 40000, google: 9900, leads: 103 },
+  /* ── Pie data ── */
+  const pieData = [
+    { name: 'Meta Ads', value: isDemo ? 142000 : metaSpend },
+    { name: 'Google Ads',value: isDemo ? 42000  : googleSpend },
   ];
 
   const chartTabs = [
-    { key: 'spend', label: 'INVERSIÓN' },
-    { key: 'leads', label: 'LEADS' },
-    { key: 'clics', label: 'CLICS' },
-    { key: 'cpl', label: 'CPL' },
+    { k: 'spend', l: 'INVERSIÓN', color: C.gold },
+    { k: 'leads', l: 'LEADS',     color: C.green },
+    { k: 'clics', l: 'CLICS',     color: C.blue },
+    { k: 'cpl',   l: 'CPL',       color: C.red },
   ];
 
+  const activeColor = chartTabs.find(t => t.k === chartTab)?.color || C.gold;
+
+  const fmtV = (v, k) => {
+    if (k === 'spend' || k === 'cpl') return `S/ ${v?.toLocaleString?.()}`; 
+    return v?.toLocaleString?.();
+  };
+
   return (
-    <div className="scroll-y" style={{ flex: 1, padding: 24 }}>
+    <div className="scroll-y" style={{ flex: 1, padding: '24px 28px', background: 'var(--bg)' }}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 20 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700 }}>Métricas</h1>
-        <span style={{ fontSize: 12, color: 'var(--text3)' }}>
-          {activeClient.name}
-          {isDemo && <span style={{ color: 'var(--yellow)', marginLeft: 8 }}>modo demo</span>}
-          {!isDemo && isLoading && <span style={{ marginLeft: 8 }}>cargando...</span>}
-        </span>
+      {/* ── Header ── */}
+      <div className="page-header">
+        <span className="page-title">Métricas</span>
+        <span className="page-client">{activeClient.name}</span>
+        {isDemo && <span style={{ fontSize: 10, color: 'var(--gold)', fontFamily: 'var(--font-semi)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', background: 'var(--gold-dim)', border: '1px solid var(--gold-border)', padding: '2px 9px', borderRadius: 20 }}>DEMO</span>}
+        {!isDemo && isLoading && <span className="spinner" />}
+        {!isDemo && !isLoading && (
+          <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}>↻ Actualizar</button>
+        )}
       </div>
 
-      {/* ── KPI Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 1, background: 'var(--border)', marginBottom: 24 }}>
-        <KpiCard
-          label="CPL TOTAL"
-          value={cplTotal ? `S/ ${cplTotal}` : isDemo ? 'S/ 48.20' : '—'}
-          change="-28% vs. mes ant."
-          changeDir="up"
-          accent="var(--accent)"
-        />
-        <KpiCard
-          label="CPL META ADS"
-          value={cplMeta ? `S/ ${cplMeta}` : isDemo ? 'S/ 45.10' : '—'}
-          subtitle={isDemo ? '115 leads · Meta' : metaLeads > 0 ? `${metaLeads} leads` : undefined}
-          accent="#4a9eff"
-        />
-        <KpiCard
-          label="CPL GOOGLE ADS"
-          value={cplGoogle ? `S/ ${cplGoogle}` : isDemo ? 'S/ 65.60' : '—'}
-          subtitle={isDemo ? '640 conv. · Google' : googleConv > 0 ? `${googleConv} conv.` : undefined}
-          accent="#f5c842"
-        />
-        <KpiCard
-          label="LEADS + CONV. TOTALES"
-          value={totalLeads > 0 ? totalLeads.toLocaleString() : isDemo ? '3,847' : '—'}
-          change="+21%"
-          changeDir="up"
-        />
-        <KpiCard
-          label="INVERSIÓN TOTAL"
-          value={totalSpend > 0 ? `S/ ${parseInt(totalSpend).toLocaleString()}` : isDemo ? 'S/ 184,000' : '—'}
-        />
-        <KpiCard
-          label="CLICS TOTALES"
-          value={totalClics > 0 ? totalClics.toLocaleString() : isDemo ? '28,420' : '—'}
-          subtitle={metaCtr > 0 ? `CTR ${metaCtr.toFixed(2)}%` : isDemo ? 'CTR 2.8%' : undefined}
-        />
-        <KpiCard
-          label="CPM META"
-          value={metaCpm > 0 ? `S/ ${metaCpm.toFixed(2)}` : isDemo ? 'S/ 12.40' : '—'}
-        />
-        <KpiCard
-          label="CAMPAÑAS ACTIVAS"
-          value={metaCampaigns.filter(c => c.status === 'ACTIVE').length || (isDemo ? 6 : 0)}
-        />
+      {/* ── KPI Grid — 4 cols ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+        <KpiCard accent="accent" label="CPL PROMEDIO TOTAL"
+          value={cplTotal ? `S/ ${cplTotal}` : D.cplTotal}
+          delta="-28% vs. mes ant." deltaDir="up"
+          sub={`${isDemo ? '3,847' : totalLeads} leads · ${isDemo ? '6' : metaCampaigns.filter(c=>c.status==='ACTIVE').length} campañas activas`}
+          delay={0} />
+        <KpiCard accent="green" label="LEADS + CONVERSIONES"
+          value={totalLeads > 0 ? totalLeads.toLocaleString() : D.leads}
+          delta="+21% vs. mes ant." deltaDir="up"
+          sub={`Meta <b>${isDemo ? '3,207' : metaLeads}</b> · Google <b>${isDemo ? '640' : googleConv}</b>`}
+          delay={.05} />
+        <KpiCard accent="slate" label="INVERSIÓN TOTAL"
+          value={totalSpend > 0 ? `S/ ${parseInt(totalSpend).toLocaleString()}` : D.spend}
+          sub={`Meta <b>${isDemo ? 'S/ 142K' : 'S/ '+parseInt(metaSpend).toLocaleString()}</b> · Google <b>${isDemo ? 'S/ 42K' : 'S/ '+parseInt(googleSpend).toLocaleString()}</b>`}
+          delay={.10} />
+        <KpiCard accent="blue" label="CLICS TOTALES"
+          value={totalClics > 0 ? totalClics.toLocaleString() : D.clics}
+          sub={`CTR Meta <b>${metaCtr > 0 ? metaCtr.toFixed(2)+'%' : D.ctr}</b>`}
+          delay={.15} />
       </div>
 
-      {/* ── Comparativo plataformas ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 1, background: 'var(--border)', marginBottom: 24 }}>
+      {/* ── 2nd KPI row ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+        <KpiCard label="CPL META ADS" accent="meta"
+          value={cplMeta ? `S/ ${cplMeta}` : D.cplMeta}
+          sub={`<b>${isDemo ? '3,207' : metaLeads}</b> leads generados`}
+          delay={.18} />
+        <KpiCard label="CPL GOOGLE ADS" accent="google"
+          value={cplGoogle ? `S/ ${cplGoogle}` : D.cplGoogle}
+          sub={`<b>${isDemo ? '640' : googleConv}</b> conversiones`}
+          delay={.22} />
+        <KpiCard label="IMPRESIONES META" accent="slate"
+          value={metaImpr > 0 ? (metaImpr/1000000).toFixed(1)+'M' : D.impr}
+          sub={`CPM <b>${metaCpm > 0 ? 'S/ '+metaCpm.toFixed(2) : D.cpm}</b>`}
+          delay={.26} />
+        <KpiCard label="CPC GOOGLE ADS" accent="slate"
+          value={cpcGoogle ? `S/ ${cpcGoogle}` : D.cpc}
+          sub={`<b>${isDemo ? '8,420' : googleClics.toLocaleString()}</b> clics pagados`}
+          delay={.30} />
+      </div>
 
-        {/* Platform bars */}
-        <div style={{ background: 'var(--bg2)', padding: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, letterSpacing: '0.5px' }}>COMPARATIVO META vs. GOOGLE</div>
-          <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 16 }}>Inversión, leads y eficiencia por plataforma</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {[
-              { label: 'Meta Ads', color: '#4a9eff', spend: isDemo ? 142000 : metaSpend, leads: isDemo ? 3207 : metaLeads, cpl: isDemo ? '44.27' : cplMeta, clics: isDemo ? 20000 : metaClics },
-              { label: 'Google Ads', color: '#f5c842', spend: isDemo ? 42000 : googleSpend, leads: isDemo ? 640 : googleConv, cpl: isDemo ? '65.63' : cplGoogle, clics: isDemo ? 8420 : googleClics },
-            ].map(p => (
-              <div key={p.label} style={{ background: 'var(--bg3)', padding: 16, borderTop: `2px solid ${p.color}` }}>
-                <div style={{ fontSize: 11, color: p.color, fontWeight: 700, letterSpacing: 1, marginBottom: 12 }}>{p.label}</div>
-                {[
-                  ['Inversión', `S/ ${parseInt(p.spend).toLocaleString()}`],
-                  ['Leads / Conv.', parseInt(p.leads).toLocaleString()],
-                  ['CPL', p.cpl ? `S/ ${p.cpl}` : '—'],
-                  ['Clics', parseInt(p.clics).toLocaleString()],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 8 }}>
-                    <span style={{ color: 'var(--text3)' }}>{k}</span>
-                    <span style={{ fontWeight: 600 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+      {/* ── Comparativo + Pie ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 320px', gap: 14, marginBottom: 20 }}>
+
+        {/* Meta card */}
+        <div className="platform-card meta">
+          <div className="platform-label">Meta Ads</div>
+          {[
+            ['Inversión',   isDemo ? 'S/ 142,000' : `S/ ${parseInt(metaSpend).toLocaleString()}`],
+            ['Leads',       isDemo ? '3,207' : metaLeads.toLocaleString()],
+            ['CPL',         cplMeta ? `S/ ${cplMeta}` : D.cplMeta],
+            ['Clics',       isDemo ? '20,000' : metaClics.toLocaleString()],
+            ['CTR',         metaCtr > 0 ? `${metaCtr.toFixed(2)}%` : D.ctr],
+            ['CPM',         metaCpm > 0 ? `S/ ${metaCpm.toFixed(2)}` : D.cpm],
+            ['Impresiones', metaImpr > 0 ? `${(metaImpr/1000000).toFixed(1)}M` : D.impr],
+          ].map(([k,v]) => (
+            <div className="platform-row" key={k}><span>{k}</span><span>{v}</span></div>
+          ))}
         </div>
 
-        {/* Pie chart */}
-        <div style={{ background: 'var(--bg2)', padding: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, letterSpacing: '0.5px' }}>DISTRIBUCIÓN INVERSIÓN</div>
-          <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 8 }}>% por plataforma</div>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={3}>
-                {pieData.map((entry, i) => (
-                  <Cell key={i} fill={Object.values(PLATFORM_COLORS)[i]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => `S/ ${parseInt(v).toLocaleString()}`} contentStyle={{ background: 'var(--bg3)', border: '0.5px solid var(--border2)', fontSize: 12 }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-            </PieChart>
-          </ResponsiveContainer>
+        {/* Google card */}
+        <div className="platform-card google">
+          <div className="platform-label">Google Ads</div>
+          {[
+            ['Inversión',    isDemo ? 'S/ 42,000' : `S/ ${parseInt(googleSpend).toLocaleString()}`],
+            ['Conversiones', isDemo ? '640' : googleConv.toLocaleString()],
+            ['CPL',          cplGoogle ? `S/ ${cplGoogle}` : D.cplGoogle],
+            ['Clics',        isDemo ? '8,420' : googleClics.toLocaleString()],
+            ['CPC',          cpcGoogle ? `S/ ${cpcGoogle}` : D.cpc],
+            ['Campañas',     isDemo ? '4' : googleCampaigns.length],
+          ].map(([k,v]) => (
+            <div className="platform-row" key={k}><span>{k}</span><span>{v}</span></div>
+          ))}
+        </div>
+
+        {/* Pie */}
+        <div className="chart-card" style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
+          <div className="chart-card-head" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+            <span className="chart-card-title">DISTRIBUCIÓN INVERSIÓN</span>
+          </div>
+          <div style={{ padding: '0 20px 16px' }}>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={52} outerRadius={76} dataKey="value" paddingAngle={4}>
+                  <Cell fill={C.blue} />
+                  <Cell fill={C.gold} />
+                </Pie>
+                <Tooltip formatter={v => `S/ ${parseInt(v).toLocaleString()}`}
+                  contentStyle={{ background: '#1C1C25', border: '1px solid rgba(220,161,69,.25)', fontSize: 12, borderRadius: 8 }} />
+                <Legend iconType="circle" iconSize={8}
+                  wrapperStyle={{ fontFamily: 'var(--font-semi)', fontSize: 11, paddingTop: 8 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* ── Campaign chart con tabs ── */}
-      <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', borderBottom: '0.5px solid var(--border)', gap: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.5px', marginRight: 24 }}>POR CAMPAÑA</div>
-          {chartTabs.map(t => (
-            <button key={t.key} onClick={() => setActiveChart(t.key)} style={{
-              padding: '4px 14px', fontSize: 11, fontWeight: 700, letterSpacing: 1,
-              cursor: 'pointer', border: 'none', background: 'transparent',
-              color: activeChart === t.key ? 'var(--accent)' : 'var(--text3)',
-              borderBottom: activeChart === t.key ? '2px solid var(--accent)' : '2px solid transparent',
-            }}>{t.label}</button>
-          ))}
+      <div className="chart-card" style={{ marginBottom: 20 }}>
+        <div className="chart-card-head">
+          <span className="chart-card-title">RENDIMIENTO POR CAMPAÑA</span>
+          <div style={{ display:'flex', gap:2, marginLeft:16 }}>
+            {chartTabs.map(t => (
+              <button key={t.k} className={`tab-btn${chartTab === t.k ? ' active' : ''}`}
+                onClick={() => setChartTab(t.k)} style={{ color: chartTab === t.k ? t.color : undefined, borderBottomColor: chartTab === t.k ? t.color : undefined }}>
+                {t.l}
+              </button>
+            ))}
+          </div>
+          <span className="chart-card-sub" style={{ marginLeft:'auto' }}>{isDemo ? '7 campañas (demo)' : `${metaCampaigns.length} campañas`}</span>
         </div>
-        <div style={{ padding: 20 }}>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={campaignChart} barSize={18} layout="vertical">
-              <XAxis type="number" tick={{ fontSize: 10, fill: '#555' }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#888' }} axisLine={false} tickLine={false} width={130} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey={activeChart}
-                fill={activeChart === 'leads' ? 'var(--green)' : activeChart === 'cpl' ? 'var(--yellow)' : activeChart === 'clics' ? '#4a9eff' : 'var(--accent)'}
-                opacity={0.85}
-                radius={[0, 3, 3, 0]}
-              />
+        <div className="chart-card-body">
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={campaignData} layout="vertical" barSize={20}>
+              <XAxis type="number" tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} tickFormatter={v => chartTab === 'spend' || chartTab === 'cpl' ? `S/${v}` : v} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#9CA3AA', fontFamily: 'var(--font-semi)' }} axisLine={false} tickLine={false} width={140} />
+              <Tooltip content={<Tooltip_ />} formatter={(v,n) => [fmtV(v, chartTab), chartTabs.find(t=>t.k===chartTab)?.l]} />
+              <Bar dataKey={chartTab} fill={activeColor} opacity={0.88} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* ── Tendencia semanal ── */}
-      <div style={{ background: 'var(--bg2)', border: '0.5px solid var(--border)', padding: 20, marginBottom: 24 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, letterSpacing: '0.5px' }}>TENDENCIA SEMANAL · INVERSIÓN</div>
-        <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 16 }}>Meta vs. Google por semana</div>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={trendData}>
-            <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#555' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#555' }} axisLine={false} tickLine={false} />
-            <CartesianGrid stroke="#1e1e1e" strokeDasharray="3 3" />
-            <Tooltip content={<CustomTooltip />} />
-            <Line type="monotone" dataKey="meta" name="Meta" stroke="#4a9eff" strokeWidth={2} dot={{ fill: '#4a9eff', r: 3 }} />
-            <Line type="monotone" dataKey="google" name="Google" stroke="#f5c842" strokeWidth={2} dot={{ fill: '#f5c842', r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
+
+        <div className="chart-card">
+          <div className="chart-card-head">
+            <span className="chart-card-title">TENDENCIA INVERSIÓN SEMANAL</span>
+          </div>
+          <div className="chart-card-body">
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="gmeta" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={C.blue} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={C.blue} stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="ggoogle" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={C.gold} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={C.gold} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="s" tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} tickFormatter={v=>`${(v/1000).toFixed(0)}K`} />
+                <CartesianGrid stroke="rgba(255,255,255,.04)" strokeDasharray="4 4" />
+                <Tooltip content={<Tooltip_ />} />
+                <Area type="monotone" dataKey="meta"   name="Meta"   stroke={C.blue} fill="url(#gmeta)"   strokeWidth={2} />
+                <Area type="monotone" dataKey="google" name="Google" stroke={C.gold} fill="url(#ggoogle)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-card">
+          <div className="chart-card-head">
+            <span className="chart-card-title">TENDENCIA LEADS + CPL</span>
+          </div>
+          <div className="chart-card-body">
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={trendData}>
+                <XAxis dataKey="s" tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="l" tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="c" orientation="right" tick={{ fontSize: 10, fill: C.text3 }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`} />
+                <CartesianGrid stroke="rgba(255,255,255,.04)" strokeDasharray="4 4" />
+                <Tooltip content={<Tooltip_ />} />
+                <Line yAxisId="l" type="monotone" dataKey="leads" name="Leads"  stroke={C.green} strokeWidth={2.5} dot={{ fill: C.green, r: 4 }} />
+                <Line yAxisId="c" type="monotone" dataKey="cpl"   name="CPL S/" stroke={C.gold}  strokeWidth={2}   dot={{ fill: C.gold,  r: 3 }} strokeDasharray="5 3" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
-      {/* Notice */}
+      {/* Demo notice */}
       {isDemo && (
-        <div style={{ background: 'var(--yellow-dim)', border: '0.5px solid rgba(245,200,66,0.3)', padding: '14px 20px', fontSize: 13 }}>
-          <strong style={{ color: 'var(--yellow)' }}>Datos demo —</strong>{' '}
-          Ve a <strong>Config → Clientes</strong> y agrega los IDs de Meta Ads y Google Ads de {activeClient.name} para ver datos reales.
+        <div className="demo-notice">
+          <strong>Datos demo —</strong> Ve a <strong>Config → Clientes</strong> y agrega los IDs de Meta Ads y Google Ads de {activeClient.name} para ver datos reales.
         </div>
       )}
     </div>
