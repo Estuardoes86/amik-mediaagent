@@ -1,14 +1,32 @@
 import axios from 'axios';
 import NodeCache from 'node-cache';
+import { google } from 'googleapis';
 
 const cache = new NodeCache({ stdTTL: 300 });
 const GOOGLE_BASE = 'https://googleads.googleapis.com/v16';
 
-function getHeaders() {
+// OAuth2 client con Refresh Token
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'http://localhost:3000/oauth2callback'
+);
+
+oauth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+async function getAccessToken() {
+  const { token } = await oauth2Client.getAccessToken();
+  return token;
+}
+
+async function getHeaders() {
+  const accessToken = await getAccessToken();
   return {
-    Authorization: `Bearer ${process.env.GOOGLE_ADS_ACCESS_TOKEN}`,
-    'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
-    'login-customer-id': process.env.GOOGLE_ADS_MANAGER_ID || ''
+    Authorization: `Bearer ${accessToken}`,
+    'developer-token': process.env.GOOGLE_DEVELOPER_TOKEN,
+    'login-customer-id': process.env.GOOGLE_ADS_MANAGER_ID || process.env.GOOGLE_ADS_CUSTOMER_ID || ''
   };
 }
 
@@ -17,10 +35,11 @@ async function googleQuery(customerId, query) {
   const cached = cache.get(cacheKey);
   if (cached) return cached;
 
+  const headers = await getHeaders();
   const response = await axios.post(
     `${GOOGLE_BASE}/customers/${customerId}/googleAds:search`,
     { query },
-    { headers: getHeaders() }
+    { headers }
   );
 
   const data = response.data.results || [];
@@ -28,12 +47,12 @@ async function googleQuery(customerId, query) {
   return data;
 }
 
-// List accessible customer accounts
 export async function getAccessibleCustomers() {
   try {
+    const headers = await getHeaders();
     const response = await axios.get(
       `${GOOGLE_BASE}/customers:listAccessibleCustomers`,
-      { headers: getHeaders() }
+      { headers }
     );
     return response.data.resourceNames || [];
   } catch (err) {
@@ -42,7 +61,6 @@ export async function getAccessibleCustomers() {
   }
 }
 
-// Get campaigns with performance for a customer
 export async function getCampaignPerformance(customerId, dateRange = 'LAST_30_DAYS') {
   const query = `
     SELECT
@@ -87,7 +105,6 @@ export async function getCampaignPerformance(customerId, dateRange = 'LAST_30_DA
   }
 }
 
-// Get keyword performance
 export async function getKeywordPerformance(customerId, dateRange = 'LAST_30_DAYS') {
   const query = `
     SELECT
@@ -98,8 +115,7 @@ export async function getKeywordPerformance(customerId, dateRange = 'LAST_30_DAY
       metrics.clicks,
       metrics.cost_micros,
       metrics.conversions,
-      metrics.average_cpc,
-      metrics.quality_score
+      metrics.average_cpc
     FROM keyword_view
     WHERE segments.date DURING ${dateRange}
       AND campaign.status = 'ENABLED'
@@ -119,8 +135,7 @@ export async function getKeywordPerformance(customerId, dateRange = 'LAST_30_DAY
       clicks: row.metrics?.clicks,
       spend: row.metrics?.costMicros ? row.metrics.costMicros / 1e6 : 0,
       conversions: row.metrics?.conversions,
-      avgCpc: row.metrics?.averageCpc ? row.metrics.averageCpc / 1e6 : null,
-      qualityScore: row.metrics?.qualityScore
+      avgCpc: row.metrics?.averageCpc ? row.metrics.averageCpc / 1e6 : null
     }));
   } catch (err) {
     console.error('[Google] getKeywordPerformance error:', err.response?.data || err.message);
@@ -128,7 +143,6 @@ export async function getKeywordPerformance(customerId, dateRange = 'LAST_30_DAY
   }
 }
 
-// Get conversion actions
 export async function getConversionActions(customerId) {
   const query = `
     SELECT
@@ -136,7 +150,6 @@ export async function getConversionActions(customerId) {
       conversion_action.name,
       conversion_action.type,
       conversion_action.status,
-      conversion_action.counting_type,
       metrics.all_conversions
     FROM conversion_action
     WHERE conversion_action.status = 'ENABLED'
@@ -151,7 +164,6 @@ export async function getConversionActions(customerId) {
   }
 }
 
-// Aggregate Google Ads metrics
 export function aggregateGoogleMetrics(campaigns) {
   return campaigns.reduce((acc, c) => ({
     spend: acc.spend + (c.spend || 0),
