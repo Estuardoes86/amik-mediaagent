@@ -29,7 +29,7 @@ const PRESETS = [
 export default function Layout() {
   const { activeClient, clients, setActiveClient,
           dateMode, datePreset, setDatePreset,
-          dateRange, applyDateRange } = useApp();
+          dateRange = {since:'', until:''}, applyDateRange = ()=>{} } = useApp();
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [customSince,    setCustomSince]    = useState(dateRange.since);

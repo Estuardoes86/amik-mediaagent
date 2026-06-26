@@ -143,7 +143,7 @@ function PlatformCard({ title, color, rows }) {
 }
 
 export default function MetricsPage() {
-  const { activeClient, dateMode, datePreset, dateRange } = useApp();
+  const { activeClient, dateMode, datePreset, dateRange = {} } = useApp();
   const { campaigns:metaCampaigns, summary:metaSummary, loading:metaLoading } = useMetaCampaigns();
   const { campaigns:googleCampaigns, summary:googleSummary, loading:googleLoading } = useGoogleCampaigns();
   const [chartTab, setChartTab] = useState('spend');
