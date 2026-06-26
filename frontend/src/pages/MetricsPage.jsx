@@ -9,8 +9,8 @@ import { useApp } from '../context/AppContext.jsx';
 
 /* ── Tokens ── */
 const C = { gold:'#DCA145', goldDim:'rgba(220,161,69,.12)', goldBorder:'rgba(220,161,69,.28)',
-  green:'#2DD4A0', blue:'#5B8DB8', red:'#E8445A', purple:'#9061B0',
-  carbon:'#262630', slate:'#30373F', text:'#F0EDE8', text2:'#9CA3AA', text3:'#5C6470',
+  green:'#059669', blue:'#2563EB', red:'#DC2626', purple:'#7C3AED',
+  carbon:'#FFFFFF', slate:'#F3F4F6', text:'#111827', text2:'#6B7280', text3:'#9CA3AF',
 };
 
 /* ── Tooltip ── */
@@ -18,9 +18,9 @@ const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background:'#fff', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
-      <div style={{ color:'#111827'3, marginBottom:6, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
+      <div style={{ color:'#9CA3AF', marginBottom:6, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
       {payload.map((p,i) => (
-        <div key={i} style={{ color:'#111827'2, fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
+        <div key={i} style={{ color:'#6B7280', fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
           {p.name}: <span style={{ color:'#111827' }}>{typeof p.value==='number' ? p.value.toLocaleString() : p.value}</span>
         </div>
       ))}
@@ -80,7 +80,7 @@ function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
           ['CPL', cpl ? `S/ ${parseFloat(cpl).toFixed(2)}` : '—'],
         ].map(([k,v])=>(
           <div key={k}>
-            <div style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#111827'3, marginBottom:4 }}>{k}</div>
+            <div style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#9CA3AF', marginBottom:4 }}>{k}</div>
             <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:20, color:k==='CPL'?color:'#111827' }}>{v}</div>
           </div>
         ))}
@@ -91,10 +91,10 @@ function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
         const convRate = i>0 ? ((s.value/steps[i-1].value)*100).toFixed(1) : null;
         return (
           <div key={i} style={{ marginBottom: i<steps.length-1 ? 4 : 0 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10.5, fontFamily:'var(--font-semi)', fontWeight:600, color:'#111827'2, marginBottom:5, letterSpacing:.3 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:10.5, fontFamily:'var(--font-semi)', fontWeight:600, color:'#6B7280', marginBottom:5, letterSpacing:.3 }}>
               <span>{s.label}</span>
               <span style={{ display:'flex', gap:10, alignItems:'center' }}>
-                {convRate && <span style={{ fontSize:9.5, color:'#111827'3, fontWeight:600 }}>conv. {convRate}%</span>}
+                {convRate && <span style={{ fontSize:9.5, color:'#9CA3AF', fontWeight:600 }}>conv. {convRate}%</span>}
                 <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#111827' }}>{s.value.toLocaleString()}</span>
               </span>
             </div>
@@ -134,7 +134,7 @@ function PlatformCard({ title, color, rows }) {
       <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color, marginBottom:16 }}>{title}</div>
       {rows.map(([k,v,highlight])=>(
         <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:12.5, marginBottom:10, alignItems:'baseline', paddingBottom:9, borderBottom:'1px solid rgba(255,255,255,.04)' }}>
-          <span style={{ color:'#111827'3, fontFamily:'var(--font-semi)', fontWeight:600 }}>{k}</span>
+          <span style={{ color:'#9CA3AF', fontFamily:'var(--font-semi)', fontWeight:600 }}>{k}</span>
           <span style={{ fontWeight:700, color: highlight ? color : '#fff', fontFamily:'var(--font-semi)', fontSize:13 }}>{v}</span>
         </div>
       ))}
@@ -268,10 +268,10 @@ export default function MetricsPage() {
         <h1 style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:26, letterSpacing:2, textTransform:'uppercase', color:'#111827', lineHeight:1 }}>
           Métricas
         </h1>
-        <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, letterSpacing:1.5, color:'#111827'3, textTransform:'uppercase' }}>
+        <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, letterSpacing:1.5, color:'#9CA3AF', textTransform:'uppercase' }}>
           {activeClient.name}
         </span>
-        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:'#111827'3, background:'#F3F4F6', border:'1px solid rgba(255,255,255,.08)', padding:'3px 10px', borderRadius:20 }}>
+        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:'#9CA3AF', background:'#F3F4F6', border:'1px solid rgba(255,255,255,.08)', padding:'3px 10px', borderRadius:20 }}>
           📅 {dateLbl}
         </span>
         {isDemo && <span style={{ fontSize:9, color:C.gold, fontFamily:'var(--font-semi)', fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', background:C.goldDim, border:`1px solid ${C.goldBorder}`, padding:'3px 10px', borderRadius:20 }}>DEMO</span>}
@@ -367,7 +367,7 @@ export default function MetricsPage() {
         ]}/>
         {/* Pie */}
         <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, padding:'16px 20px', boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
-          <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#111827'2, marginBottom:12 }}>DISTRIBUCIÓN INVERSIÓN</div>
+          <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#6B7280', marginBottom:12 }}>DISTRIBUCIÓN INVERSIÓN</div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={[
@@ -394,7 +394,7 @@ export default function MetricsPage() {
             <button key={t.k} onClick={()=>setChartTab(t.k)} style={{
               padding:'5px 14px', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase',
               cursor:'pointer', border:'none', background:chartTab===t.k?`${t.color}22`:'transparent',
-              color:chartTab===t.k?t.color:'#111827'3, borderBottom:chartTab===t.k?`2px solid ${t.color}`:'2px solid transparent',
+              color:chartTab===t.k?t.color:'#9CA3AF', borderBottom:chartTab===t.k?`2px solid ${t.color}`:'2px solid transparent',
               borderRadius:'4px 4px 0 0', transition:'all .15s',
             }}>{t.l}</button>
           ))}
