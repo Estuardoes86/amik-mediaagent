@@ -106,26 +106,60 @@ export default function MetaPage() {
   const waCpl     = waConvs>0   ? (waSpend/waConvs).toFixed(2) : '—';
 
   /* ── By programa (from campaign names) ── */
+  // Extract carrera + sede + type from campaign name (UPSJB naming: "2026 2 LEADS [WHATSAPP] CARRERA [SEDE]")
+  const extractPrograma = (name) => {
+    const n = (name||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    // Sede
+    let sede = 'Presencial';
+    if      (n.includes('DISTANCIA')||n.includes('VIRTUAL'))      sede='A Distancia';
+    else if (n.includes('CHORRILLOS'))                             sede='Chorrillos';
+    else if (n.includes('SAN BORJA')||n.includes('SANBORJA'))     sede='San Borja';
+    else if (n.includes(' ICA ') || n.endsWith(' ICA'))           sede='Ica';
+    else if (n.includes('CHINCHA'))                               sede='Chincha';
+    // Carrera (order: most specific first)
+    const map2 = [
+      ['Medicina Humana',                  ['MEDICINA HUMANA','WHATSAPP MEDICINA']],
+      ['Medicina Veterinaria y Zootecnia', ['VETERINARIA','ZOOTECNIA']],
+      ['Enfermería',                       ['ENFERMERIA']],
+      ['Psicología',                       ['PSICOLOGIA']],
+      ['Derecho',                          ['DERECHO']],
+      ['Contabilidad',                     ['CONTABILIDAD']],
+      ['Estomatología',                    ['ESTOMATOLOGIA']],
+      ['Ingeniería Agroindustrial',        ['AGROINDUSTRIAL']],
+      ['Ingeniería Civil',                 ['WHATSAPP CIVIL',' CIVIL']],
+      ['Ingeniería de Sistemas',           ['SISTEMAS']],
+      ['Ingeniería en Enología',           ['ENOLOGIA']],
+      ['Terapia Física y Rehab.',         ['TERAPIA FISICA']],
+      ['Laboratorio Clínico',             ['LABORATORIO']],
+      ['Turismo y Hotelería',             ['TURISMO','HOTELERIA']],
+      ['Administración y Marketing',       ['ADMINISTRACION MARKETING','ADMIN MARKETING']],
+      ['Adm. y Negocios Int.',            ['NEGOCIOS INTERNACIONALES','NEGOCIOS INT']],
+      ['Administración de Empresas',       ['ADMINISTRACION','ADMIN']],
+    ];
+    let carrera = 'Otros';
+    for (const [c,kws] of map2) { if(kws.some(k=>n.includes(k))){ carrera=c; break; } }
+    return { carrera, sede };
+  };
+
   const byPrograma = useMemo(()=>{
     const map = {};
-    for (const c of leadCamps) {
-      const name = (c.name||'').toUpperCase();
-      let prog = 'Otros';
-      if (name.includes('MEDICINA'))      prog='Medicina Humana';
-      else if (name.includes('ENFERMER')) prog='Enfermería';
-      else if (name.includes('PSICOLOG')) prog='Psicología';
-      else if (name.includes('DERECHO'))  prog='Derecho';
-      else if (name.includes('DISTANCIA')||name.includes('VIRTUAL')) prog='A Distancia';
-      else if (name.includes('ADMIN')||name.includes('MARKETING')) prog='Administración';
-      else if (name.includes('CONTAB'))   prog='Contabilidad';
-      else if (name.includes('ING'))      prog='Ingeniería';
-      if (!map[prog]) map[prog]={prog,leads:0,spend:0};
-      map[prog].leads += getLeads(c);
-      map[prog].spend += getSpend(c);
+    for (const c of campaigns.filter(c=>!isWACamp(c))) {
+      const { carrera } = extractPrograma(c.name);
+      if (!map[carrera]) map[carrera]={prog:carrera,leads:0,spend:0};
+      map[carrera].leads += getLeads(c);
+      map[carrera].spend += getSpend(c);
+    }
+    // Also add WA campaigns grouped by carrera
+    for (const c of campaigns.filter(c=>isWACamp(c))) {
+      const { carrera } = extractPrograma(c.name);
+      const key = carrera+' (WA)';
+      if (!map[key]) map[key]={prog:key,leads:0,spend:0,isWA:true};
+      map[key].leads += getWA(c)||getClics(c);
+      map[key].spend += getSpend(c);
     }
     return Object.values(map).map(p=>({...p, cpl:p.leads>0?(p.spend/p.leads).toFixed(2):null}))
       .sort((a,b)=>b.leads-a.leads);
-  },[leadCamps]);
+  },[campaigns]);
 
   /* ── Filtered campaigns ── */
   const filteredCamps = useMemo(()=>{
