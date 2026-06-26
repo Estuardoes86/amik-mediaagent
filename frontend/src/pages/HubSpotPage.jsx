@@ -67,7 +67,7 @@ const TENDENCIA = [
 ];
 
 const ESTADOS = [
-  {e:'Sin Gestión',    v:258,  color:C.t3    },
+  {e:'Sin Gestión',    v:258,  color:'#9CA3AF'    },
   {e:'En Validación',  v:1932, color:C.gold  },
   {e:'En Calificación',v:179,  color:C.indigo},
   {e:'Calificado',     v:325,  color:C.green },
@@ -81,7 +81,7 @@ const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 4px 16px rgba(0,0,0,.08)' }}>
-      <div style={{ color:C.t3, marginBottom:5, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontWeight:700 }}>{label}</div>
+      <div style={{ color:'#9CA3AF', marginBottom:5, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontWeight:700 }}>{label}</div>
       {payload.map((p,i)=>(
         <div key={i} style={{ color:p.color||C.t2, fontWeight:600, marginBottom:2 }}>
           {p.name}: <span style={{ color:'#111827' }}>{typeof p.value==='number'?p.value.toLocaleString():p.value}</span>
@@ -205,8 +205,8 @@ export default function HubSpotPage() {
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20, flexWrap:'wrap' }}>
         <div>
-          <h1 style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:24, letterSpacing:2, textTransform:'uppercase', color:'#fff', lineHeight:1 }}>HubSpot CRM</h1>
-          <div style={{ fontFamily:'var(--font-semi)', fontSize:10, color:C.t3, letterSpacing:1.5, textTransform:'uppercase', marginTop:4 }}>
+          <h1 style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:24, letterSpacing:2, textTransform:'uppercase', color:'#111827', lineHeight:1 }}>HubSpot CRM</h1>
+          <div style={{ fontFamily:'var(--font-semi)', fontSize:10, color:'#9CA3AF', letterSpacing:1.5, textTransform:'uppercase', marginTop:4 }}>
             {activeClient.name} · Admisión Pregrado 2026-II
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function HubSpotPage() {
           ].map((s,i)=>(
             <div key={i} style={{ textAlign:'center', padding:'6px 14px', background:`${s.c}11`, border:`1px solid ${s.c}33`, borderRadius:8 }}>
               <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:s.c, lineHeight:1 }}>{s.v}</div>
-              <div style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:1, color:C.t3, marginTop:3, textTransform:'uppercase' }}>{s.l}</div>
+              <div style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:1, color:'#9CA3AF', marginTop:3, textTransform:'uppercase' }}>{s.l}</div>
             </div>
           ))}
         </div>
@@ -260,8 +260,8 @@ export default function HubSpotPage() {
             <div key={i} style={{ background:`${a.color}0D`, border:`1px solid ${a.color}40`, borderLeft:`3px solid ${a.color}`, borderRadius:10, padding:'16px 20px' }}>
               <div style={{ fontSize:20, marginBottom:6 }}>{a.icon}</div>
               <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:a.color, marginBottom:6 }}>{a.title}</div>
-              <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:32, color:'#fff', lineHeight:1, marginBottom:6 }}>{a.value}</div>
-              <div style={{ fontSize:11.5, color:C.t2 }}>{a.note}</div>
+              <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:32, color:'#111827', lineHeight:1, marginBottom:6 }}>{a.value}</div>
+              <div style={{ fontSize:11.5, color:'#6B7280' }}>{a.note}</div>
             </div>
           ))}
         </div>
@@ -297,9 +297,9 @@ export default function HubSpotPage() {
                 <Area type="monotone" dataKey="v" name="Leads" stroke={C.gold} fill="url(#gl)" strokeWidth={2.5}/>
               </AreaChart>
             </ResponsiveContainer>
-            <div style={{ display:'flex', gap:20, marginTop:10, fontSize:11.5, color:C.t3 }}>
-              <span>Pico: <b style={{ color:'#fff' }}>635</b> (8 jun)</span>
-              <span>Prom: <b style={{ color:'#fff' }}>~430/sem</b></span>
+            <div style={{ display:'flex', gap:20, marginTop:10, fontSize:11.5, color:'#9CA3AF' }}>
+              <span>Pico: <b style={{ color:'#111827' }}>635</b> (8 jun)</span>
+              <span>Prom: <b style={{ color:'#111827' }}>~430/sem</b></span>
               <span>Última: <b style={{ color:C.red }}>335 ↓47%</b></span>
             </div>
           </Card>
@@ -310,10 +310,10 @@ export default function HubSpotPage() {
               return (
                 <div key={i} style={{ marginBottom:8 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, marginBottom:3 }}>
-                    <span style={{ color:C.t2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{e.e}</span>
+                    <span style={{ color:'#6B7280', fontFamily:'var(--font-semi)', fontWeight:600 }}>{e.e}</span>
                     <div style={{ display:'flex', gap:8 }}>
-                      <span style={{ color:C.t3, fontSize:10 }}>{pct}%</span>
-                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#fff', minWidth:38, textAlign:'right' }}>{e.v.toLocaleString()}</span>
+                      <span style={{ color:'#9CA3AF', fontSize:10 }}>{pct}%</span>
+                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#111827', minWidth:38, textAlign:'right' }}>{e.v.toLocaleString()}</span>
                     </div>
                   </div>
                   <div style={{ background:'#F3F4F6', borderRadius:3, height:22, overflow:'hidden' }}>
@@ -333,7 +333,7 @@ export default function HubSpotPage() {
             <div key={f.key} style={{ background:`${f.color}11`, border:`1px solid ${f.color}33`, borderRadius:10, padding:'14px 18px', textAlign:'center' }}>
               <div style={{ fontSize:22, marginBottom:6 }}>{f.icon}</div>
               <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:32, color:f.color, lineHeight:1 }}>{f.v.toLocaleString()}</div>
-              <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:C.t3, marginTop:5 }}>{f.label}</div>
+              <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:'#9CA3AF', marginTop:5 }}>{f.label}</div>
             </div>
           ))}
         </div>
@@ -352,7 +352,7 @@ export default function HubSpotPage() {
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <span style={{ fontSize:18 }}>{f.icon}</span>
-                        <span style={{ fontFamily:'var(--font-semi)', fontWeight:700, fontSize:14, color:C.t2 }}>{f.label}</span>
+                        <span style={{ fontFamily:'var(--font-semi)', fontWeight:700, fontSize:14, color:'#6B7280' }}>{f.label}</span>
                       </div>
                       <div style={{ display:'flex', gap:12, alignItems:'center' }}>
                         {conv&&(
@@ -362,7 +362,7 @@ export default function HubSpotPage() {
                             {conv}% conv.
                           </span>
                         )}
-                        <span style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:28, color:'#fff', minWidth:65, textAlign:'right' }}>
+                        <span style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:28, color:'#111827', minWidth:65, textAlign:'right' }}>
                           {f.v.toLocaleString()}
                         </span>
                       </div>
@@ -394,7 +394,7 @@ export default function HubSpotPage() {
               ].map((t,i)=>(
                 <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
                   padding:'10px 0', borderBottom:i<3?'1px solid rgba(255,255,255,.05)':undefined }}>
-                  <span style={{ fontSize:11.5, color:C.t2 }}>{t.e}</span>
+                  <span style={{ fontSize:11.5, color:'#6B7280' }}>{t.e}</span>
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:22,
                       color:t.dir==='good'?C.green:t.dir==='bad'?C.red:C.text }}>{t.d}d</div>
@@ -404,7 +404,7 @@ export default function HubSpotPage() {
               ))}
             </Card>
             <Card>
-              <Sec text="Google Ads · Funnel" action={<span style={{ fontSize:10, color:C.t3 }}>S/ 519,794</span>}/>
+              <Sec text="Google Ads · Funnel" action={<span style={{ fontSize:10, color:'#9CA3AF' }}>S/ 519,794</span>}/>
               {[{s:'Interesado',v:20},{s:'Inscrito',v:23},{s:'Ingresante',v:12},{s:'Pagante',v:22},{s:'Matriculado',v:2}].map((r,i,a)=>(
                 <div key={r.s} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                   <span style={{ fontSize:11.5, color:r.s==='Matriculado'?C.green:C.t2 }}>{r.s}</span>
@@ -416,7 +416,7 @@ export default function HubSpotPage() {
                   </div>
                 </div>
               ))}
-              <div style={{ marginTop:10, padding:'10px 12px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:11.5, color:C.t2 }}>
+              <div style={{ marginTop:10, padding:'10px 12px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:11.5, color:'#6B7280' }}>
                 ⚠️ <strong style={{ color:C.red }}>S/259,897 por matriculado</strong> — verificar atribución
               </div>
             </Card>
@@ -436,7 +436,7 @@ export default function HubSpotPage() {
             <PillBtn active={filter==='alerta'} onClick={()=>setFilter('alerta')} label="🚨 Alerta"    color={C.red}/>
             <PillBtn active={filter==='conv0'}  onClick={()=>setFilter('conv0')}  label="0 conv."       color={C.gold}/>
           </div>
-          <span style={{ fontSize:11, color:C.t3, marginLeft:8 }}>Ordenar:</span>
+          <span style={{ fontSize:11, color:'#9CA3AF', marginLeft:8 }}>Ordenar:</span>
           <div style={{ display:'flex', gap:5 }}>
             <PillBtn active={sort==='total'}    onClick={()=>setSort('total')}    label="Leads"/>
             <PillBtn active={sort==='conv'}     onClick={()=>setSort('conv')}     label="Conv."/>
@@ -473,7 +473,7 @@ export default function HubSpotPage() {
         {/* Full table */}
         <Card p={0}>
           <div style={{ padding:'12px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#6B7280' }}>
               {filteredC.length} carreras · {filteredC.reduce((s,c)=>s+c.total,0).toLocaleString()} leads · {filteredC.reduce((s,c)=>s+c.conv,0)} conv.
             </span>
           </div>
@@ -497,11 +497,11 @@ export default function HubSpotPage() {
                 const mainSede=SEDES.reduce((m,s)=>((c[s.key]||0)>(c[m.key]||0)?s:m),SEDES[0]);
                 return (
                   <tr key={c.n}>
-                    <td style={{ fontWeight:600, color:C.text, maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.n}</td>
+                    <td style={{ fontWeight:600, color:'#111827', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.n}</td>
                     <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{c.total.toLocaleString()}</td>
                     <td style={{ textAlign:'right', fontWeight:700, color:c.conv>0?C.green:C.t3 }}>{c.conv>0?c.conv:'—'}</td>
                     <td style={{ textAlign:'right' }}>
-                      {t!==null?<span style={{ color:col, fontWeight:700 }}>{t.toFixed(1)}%</span>:<span style={{ color:C.t3 }}>—</span>}
+                      {t!==null?<span style={{ color:col, fontWeight:700 }}>{t.toFixed(1)}%</span>:<span style={{ color:'#9CA3AF' }}>—</span>}
                     </td>
                     <td style={{ textAlign:'center' }}>
                       <span style={{ fontFamily:'var(--font-semi)', fontSize:10, color:mainSede.color, background:`${mainSede.color}15`, padding:'2px 8px', borderRadius:20, fontWeight:700 }}>
@@ -570,7 +570,7 @@ export default function HubSpotPage() {
 
         <Card p={0}>
           <div style={{ padding:'12px 20px', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
-            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#6B7280' }}>
               LEADS POR CARRERA Y SEDE
             </span>
           </div>
@@ -590,13 +590,13 @@ export default function HubSpotPage() {
               <tbody>
                 {(sede==='all'?CARRERAS:[...CARRERAS].filter(c=>c[sede]>0).sort((a,b)=>b[sede]-a[sede])).map(c=>(
                   <tr key={c.n}>
-                    <td style={{ fontWeight:500, color:C.text }}>{c.n}</td>
+                    <td style={{ fontWeight:500, color:'#111827' }}>{c.n}</td>
                     <td style={{ textAlign:'right', color:c.chorrillos>0?C.blue:C.t3   }}>{c.chorrillos||'—'}</td>
                     <td style={{ textAlign:'right', color:c.sanborja>0?C.indigo:C.t3   }}>{c.sanborja||'—'}</td>
                     <td style={{ textAlign:'right', color:c.ica>0?C.purple:C.t3        }}>{c.ica||'—'}</td>
                     <td style={{ textAlign:'right', color:c.chincha>0?C.gold:C.t3      }}>{c.chincha||'—'}</td>
                     <td style={{ textAlign:'right', color:c.distancia>0?C.green:C.t3   }}>{c.distancia||'—'}</td>
-                    <td style={{ textAlign:'right', fontWeight:700, color:C.text       }}>{c.total.toLocaleString()}</td>
+                    <td style={{ textAlign:'right', fontWeight:700, color:'#111827'       }}>{c.total.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -608,7 +608,7 @@ export default function HubSpotPage() {
                   <td style={{ textAlign:'right', fontWeight:700, color:C.purple }}>1,360</td>
                   <td style={{ textAlign:'right', fontWeight:700, color:C.gold   }}>332</td>
                   <td style={{ textAlign:'right', fontWeight:700, color:C.green  }}>658</td>
-                  <td style={{ textAlign:'right', fontWeight:800, color:C.text   }}>4,785</td>
+                  <td style={{ textAlign:'right', fontWeight:800, color:'#111827'   }}>4,785</td>
                 </tr>
               </tfoot>
             </table>
@@ -657,12 +657,12 @@ export default function HubSpotPage() {
                 const tN=parseInt(t)||0;
                 return (
                   <tr key={i}>
-                    <td style={{ fontWeight:600, color:C.text }}>{a.n}</td>
+                    <td style={{ fontWeight:600, color:'#111827' }}>{a.n}</td>
                     <td style={{ textAlign:'right' }}>{a.asig||'—'}</td>
                     <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{a.atend}</td>
                     <td style={{ textAlign:'right', color:a.olvido>=8?C.red:a.olvido>=3?C.gold:C.t3, fontWeight:700 }}>{a.olvido}</td>
                     <td style={{ textAlign:'right' }}>
-                      {t!=='—'?<span style={{ color:tN>50?C.green:tN>25?C.gold:C.red, fontWeight:700 }}>{t}%</span>:<span style={{ color:C.t3 }}>—</span>}
+                      {t!=='—'?<span style={{ color:tN>50?C.green:tN>25?C.gold:C.red, fontWeight:700 }}>{t}%</span>:<span style={{ color:'#9CA3AF' }}>—</span>}
                     </td>
                     <td style={{ textAlign:'center', fontSize:14 }}>{a.olvido>=8?'🚨':a.olvido>=3?'⚠️':'✅'}</td>
                   </tr>
@@ -677,8 +677,8 @@ export default function HubSpotPage() {
             <Sec text="Atendidos en menos de 10 minutos"/>
             <div style={{ padding:'16px 0' }}>
               <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:72, color:C.red, lineHeight:1 }}>2</div>
-              <div style={{ fontSize:12, color:C.t3, marginTop:8 }}>de 549 leads enviados a ventas</div>
-              <div style={{ marginTop:16, padding:'12px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:12, color:C.t2 }}>
+              <div style={{ fontSize:12, color:'#9CA3AF', marginTop:8 }}>de 549 leads enviados a ventas</div>
+              <div style={{ marginTop:16, padding:'12px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:12, color:'#6B7280' }}>
                 Solo el <strong style={{ color:C.red }}>0.36%</strong> fue contactado en los primeros 10 minutos
               </div>
             </div>
@@ -688,11 +688,11 @@ export default function HubSpotPage() {
             {[
               {m:'Asesor no cambia estado',n:2390,color:C.red   },
               {m:'Intento límite',          n:120, color:C.gold  },
-              {m:'Sin motivo registrado',   n:73,  color:C.t3   },
+              {m:'Sin motivo registrado',   n:73,  color:'#9CA3AF'   },
               {m:'Clases a distancia',      n:63,  color:C.blue  },
               {m:'Eligió otra universidad', n:58,  color:C.indigo},
-              {m:'Factor económico',        n:52,  color:C.t3   },
-              {m:'Proceso concluido',       n:29,  color:C.t3   },
+              {m:'Factor económico',        n:52,  color:'#9CA3AF'   },
+              {m:'Proceso concluido',       n:29,  color:'#9CA3AF'   },
             ].map((m,i)=>(
               <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
                 marginBottom:8, paddingBottom:8, borderBottom:i<6?'1px solid rgba(255,255,255,.04)':undefined }}>
@@ -721,16 +721,16 @@ export default function HubSpotPage() {
               {n:'Meta / Redes sociales', v:1531,color:C.blue  },
               {n:'Búsqueda orgánica',     v:577, color:C.green },
               {n:'Tráfico org. social',   v:231, color:C.indigo},
-              {n:'Sin UTM / valor',       v:337, color:C.t3    },
+              {n:'Sin UTM / valor',       v:337, color:'#9CA3AF'    },
             ].map((f,i)=>{
               const pct=(f.v/5930*100).toFixed(1);
               return (
                 <div key={i} style={{ marginBottom:12 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                    <span style={{ color:C.t2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{f.n}</span>
+                    <span style={{ color:'#6B7280', fontFamily:'var(--font-semi)', fontWeight:600 }}>{f.n}</span>
                     <div style={{ display:'flex', gap:10 }}>
-                      <span style={{ color:C.t3, fontSize:10.5 }}>{pct}%</span>
-                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#fff' }}>{f.v.toLocaleString()}</span>
+                      <span style={{ color:'#9CA3AF', fontSize:10.5 }}>{pct}%</span>
+                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#111827' }}>{f.v.toLocaleString()}</span>
                     </div>
                   </div>
                   <div style={{ background:'#F3F4F6', borderRadius:4, height:28, overflow:'hidden' }}>
@@ -761,7 +761,7 @@ export default function HubSpotPage() {
                   const t=((r.cal/r.l)*100).toFixed(1);
                   return (
                     <tr key={i}>
-                      <td style={{ color:C.text, fontWeight:500 }}>{r.c}</td>
+                      <td style={{ color:'#111827', fontWeight:500 }}>{r.c}</td>
                       <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{r.l.toLocaleString()}</td>
                       <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{r.cal}</td>
                       <td style={{ textAlign:'right' }}>
@@ -772,7 +772,7 @@ export default function HubSpotPage() {
                 })}
               </tbody>
             </table>
-            <div style={{ marginTop:14, padding:'12px', background:C.greenD, border:`1px solid ${C.green}33`, borderRadius:8, fontSize:12, color:C.t2 }}>
+            <div style={{ marginTop:14, padding:'12px', background:C.greenD, border:`1px solid ${C.green}33`, borderRadius:8, fontSize:12, color:'#6B7280' }}>
               💡 Orgánico califica mejor (16.1%) — considera SEO como estrategia de calidad vs volumen.
             </div>
           </Card>
@@ -780,7 +780,7 @@ export default function HubSpotPage() {
 
         <Card p={0}>
           <div style={{ padding:'12px 20px', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
-            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#6B7280' }}>
               DESGLOSE UTM · 1,132 contactos con tracking
             </span>
           </div>
@@ -803,18 +803,18 @@ export default function HubSpotPage() {
                 {src:'(Sin valor)',med:'—',   n:105,pct:9.3, canal:'Sin trackear ⚠️'},
               ].map((r,i)=>(
                 <tr key={i}>
-                  <td style={{ color:C.text, fontWeight:500 }}>{r.src}</td>
-                  <td style={{ color:C.t3 }}>{r.med}</td>
+                  <td style={{ color:'#111827', fontWeight:500 }}>{r.src}</td>
+                  <td style={{ color:'#9CA3AF' }}>{r.med}</td>
                   <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontWeight:700 }}>{r.n.toLocaleString()}</td>
                   <td style={{ textAlign:'right' }}>
                     <span style={{ color:r.pct>50?C.gold:r.pct>5?C.t2:C.t3, fontWeight:r.pct>50?700:400 }}>{r.pct}%</span>
                   </td>
-                  <td style={{ textAlign:'center', fontSize:12, color:C.t2 }}>{r.canal}</td>
+                  <td style={{ textAlign:'center', fontSize:12, color:'#6B7280' }}>{r.canal}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{ padding:'12px 20px', borderTop:'1px solid rgba(255,255,255,.07)', fontSize:11.5, color:C.t3 }}>
+          <div style={{ padding:'12px 20px', borderTop:'1px solid rgba(255,255,255,.07)', fontSize:11.5, color:'#9CA3AF' }}>
             ⚠️ <strong style={{ color:C.gold }}>Facebook CTWA domina con 84.1%</strong> del volumen WhatsApp trackeado.
           </div>
         </Card>
