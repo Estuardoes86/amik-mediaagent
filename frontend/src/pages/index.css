@@ -52,9 +52,9 @@
   --yellow-dim: var(--gold-dim);
 
   /* ── Shadows ── */
-  --shadow:       0 1px 3px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.4);
-  --shadow-hover: 0 4px 12px rgba(0,0,0,.6), 0 20px 48px rgba(220,161,69,.12);
-  --shadow-gold:  0 4px 24px rgba(220,161,69,.20);
+  --shadow:       0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-hover: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px rgba(220,161,69,.15);
+  --shadow-gold:  0 4px 16px rgba(220,161,69,.15);
 
   /* ── Geometry ── */
   --radius:    4px;
