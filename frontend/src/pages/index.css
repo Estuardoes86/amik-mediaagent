@@ -13,8 +13,8 @@
   --gold-light:  #E8B86D;
   --gold-dim:    rgba(220,161,69,0.12);
   --gold-border: rgba(220,161,69,0.30);
-  --white:       #FFFFFF;
-  --off-white:   #F2F0EB;
+  --white:       #111827;
+  --off-white:   #374151;
 
   /* ── Backgrounds ── */
   --bg:    #F8F9FA;
@@ -126,7 +126,7 @@ body {
 .page-title {
   font-family: var(--font-cond);
   font-weight: 900; font-size: 28px;
-  letter-spacing: 2px; text-transform: uppercase; color: var(--white);
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text);
 }
 .page-client {
   font-family: var(--font-semi);
@@ -170,7 +170,7 @@ body {
 .kpi-value {
   font-family: var(--font-cond);
   font-weight: 800; font-size: 38px;
-  line-height: 1; letter-spacing: 0.5px; color: var(--white);
+  line-height: 1; letter-spacing: 0.5px; color: var(--text);
 }
 .kpi-value .cur { font-size: 19px; color: var(--text3); font-weight: 700; margin-right: 2px; }
 .kpi-value.gold-val { color: var(--gold); }
@@ -217,7 +217,7 @@ body {
 .sec-title {
   font-family: var(--font-cond);
   font-weight: 800; font-size: 20px;
-  letter-spacing: 0.5px; color: var(--white); line-height: 1.1;
+  letter-spacing: 0.5px; color: var(--text); line-height: 1.1;
 }
 
 /* ══════════════════════════════════════
