@@ -99,7 +99,11 @@ export function aggregateInsights(insights) {
       for (const a of row.actions) {
         if (a.action_type === 'lead')                           totals.leads    += parseInt(a.value||0);
         if (a.action_type === 'purchase')                       totals.purchases+= parseInt(a.value||0);
-        if (a.action_type?.includes('messaging_conversation'))  totals.waConv   += parseInt(a.value||0);
+        // All WhatsApp conversion types
+        if (a.action_type?.includes('messaging_conversation') ||
+            a.action_type?.includes('messaging_first_reply') ||
+            a.action_type?.includes('total_messaging_connection') ||
+            a.action_type?.includes('whatsapp_message'))        totals.waConv   += parseInt(a.value||0);
       }
     }
     if (row.action_values) {

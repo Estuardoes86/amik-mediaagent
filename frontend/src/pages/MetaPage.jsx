@@ -18,7 +18,8 @@ const getLeads = c => {
 };
 const getWA = c => {
   const m = c.metrics || c;
-  return (m.actions||[]).reduce((s,a)=>a.action_type?.includes('messaging_conversation')?s+i(a.value):s, 0);
+  const WA_TYPES=['messaging_conversation','messaging_first_reply','total_messaging_connection','whatsapp_message'];
+  return (m.actions||[]).reduce((s,a)=>WA_TYPES.some(t=>(a.action_type||'').includes(t))?s+i(a.value):s, 0);
 };
 const getSpend  = c => parseFloat((c.metrics||c).spend||0);
 const getClics  = c => i((c.metrics||c).clicks||0);
