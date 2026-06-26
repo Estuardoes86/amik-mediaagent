@@ -17,21 +17,21 @@
   --off-white:   #F2F0EB;
 
   /* ── Backgrounds ── */
-  --bg:    var(--carbon-deep);
-  --bg2:   var(--carbon);
-  --bg3:   var(--slate);
-  --bg4:   var(--slate-light);
-  --bg5:   var(--slate-muted);
+  --bg:    #F8F9FA;
+  --bg2:   #FFFFFF;
+  --bg3:   #F3F4F6;
+  --bg4:   #E9EAEC;
+  --bg5:   #D1D5DB;
 
   /* ── Borders ── */
-  --border:  rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
-  --border3: rgba(255,255,255,0.20);
+  --border:  #E5E7EB;
+  --border2: #D1D5DB;
+  --border3: #9CA3AF;
 
   /* ── Text ── */
-  --text:  #F0EDE8;
-  --text2: #9CA3AA;
-  --text3: #5C6470;
+  --text:  #111827;
+  --text2: #374151;
+  --text3: #6B7280;
 
   /* ── Accent = Gold ── */
   --accent:        var(--gold);
@@ -94,7 +94,7 @@ body {
 ══════════════════════════════════════ */
 .nav-shell {
   display: flex; align-items: center; height: 52px;
-  background: var(--carbon-dark);
+  background: #FFFFFF;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0; overflow-x: auto;
 }
@@ -138,7 +138,7 @@ body {
    KPI CARDS
 ══════════════════════════════════════ */
 .kpi-card {
-  background: var(--carbon);
+  background: #FFFFFF;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 18px 20px 16px;
@@ -224,7 +224,7 @@ body {
    CHART CARDS
 ══════════════════════════════════════ */
 .chart-card {
-  background: var(--carbon);
+  background: #FFFFFF;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow);
@@ -247,7 +247,7 @@ body {
    PLATFORM COMPARE CARDS
 ══════════════════════════════════════ */
 .platform-card {
-  background: var(--slate);
+  background: #F3F4F6;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 18px 20px;
@@ -400,7 +400,7 @@ body {
    INPUTS
 ══════════════════════════════════════ */
 input, select, textarea {
-  background: var(--slate);
+  background: #F3F4F6;
   border: 1px solid var(--border2);
   color: var(--text);
   font-family: var(--font);
@@ -412,14 +412,14 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim);
 }
 input::placeholder, textarea::placeholder { color: var(--text3); }
-select option { background: var(--carbon); }
+select option { background: #FFFFFF; }
 
 /* ══════════════════════════════════════
    TOAST
 ══════════════════════════════════════ */
 .toast {
   position: fixed; bottom: 24px; right: 24px;
-  background: var(--carbon); border: 1px solid var(--border2);
+  background: #FFFFFF; border: 1px solid var(--border2);
   color: var(--text); padding: 13px 22px;
   font-family: var(--font-semi); font-size: 12.5px; font-weight: 600;
   z-index: 9999; border-radius: var(--radius-md);
