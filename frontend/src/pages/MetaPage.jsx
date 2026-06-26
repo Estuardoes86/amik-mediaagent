@@ -272,7 +272,7 @@ export default function MetaPage() {
         <div style={{ display:'flex', gap:8, marginBottom:16, alignItems:'center', flexWrap:'wrap' }}>
           <input value={search} onChange={e=>setSearch(e.target.value)}
             placeholder="Buscar campaña..." style={{ width:220, fontSize:12 }}/>
-          <div style={{ display:'flex', gap:6' }}>
+          <div style={{ display:'flex', gap:6 }}>
             {[['all','Todas'],['active','● Activas'],['paused','○ Pausadas']].map(([k,l])=>(
               <button key={k} onClick={()=>setStatusF(k)}
                 className={`btn btn-ghost btn-sm${statusF===k?' active':''}`}>{l}</button>

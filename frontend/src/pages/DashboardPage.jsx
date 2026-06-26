@@ -138,7 +138,7 @@ export default function DashboardPage() {
                     {m.campanas} campañas activas
                   </div>
                 </div>
-                <div style={{ display:'flex', gap:6' }}>
+                <div style={{ display:'flex', gap:6 }}>
                   {client.meta   && <span className="platform-badge meta">Meta</span>}
                   {client.google && <span className="platform-badge google">Google</span>}
                   {client.hs     && <span className="platform-badge hs">HubSpot</span>}
