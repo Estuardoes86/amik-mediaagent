@@ -1,104 +1,86 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { hubspotApi } from '../lib/api.js';
 import { useApp } from '../context/AppContext.jsx';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid
+  PieChart, Pie, Cell, Legend, AreaChart, Area, CartesianGrid
 } from 'recharts';
 
+/* ── Design tokens ─────────────────────────── */
 const C = {
-  gold:'#DCA145', goldDim:'rgba(220,161,69,.12)', goldBorder:'rgba(220,161,69,.28)',
-  green:'#2DD4A0', greenDim:'rgba(45,212,160,.1)',
-  blue:'#5B8DB8', blueDim:'rgba(91,141,184,.12)',
-  red:'#E8445A', redDim:'rgba(232,68,90,.1)',
-  purple:'#9061B0', indigo:'#7B68EE',
-  carbon:'#262630', slate:'#30373F',
-  text:'#F0EDE8', text2:'#9CA3AA', text3:'#5C6470',
+  gold:'#DCA145', goldD:'rgba(220,161,69,.12)', goldB:'rgba(220,161,69,.28)',
+  green:'#2DD4A0', greenD:'rgba(45,212,160,.10)',
+  blue:'#5B8DB8',  blueD:'rgba(91,141,184,.12)',
+  red:'#E8445A',   redD:'rgba(232,68,90,.10)',
+  purple:'#9061B0',indigo:'#7B68EE',
+  carbon:'#262630',slate:'#30373F',slate2:'#3D4550',
+  text:'#F0EDE8',  t2:'#9CA3AA', t3:'#5C6470',
 };
 
-// ── Static data from HubSpot analysis ──────────────────────────────
-const STATIC = {
-  totalLeads: 5930,
-  metaLeads: 30, target: 25000,
-  funnel: [
-    { stage:'Interesado', value:922,  color:C.blue   },
-    { stage:'Inscrito',   value:420,  color:C.indigo },
-    { stage:'Ingresante', value:235,  color:C.purple },
-    { stage:'Pagante',    value:392,  color:C.gold   },
-    { stage:'Matriculado',value:14,   color:C.green  },
-  ],
-  convRates: [
-    { from:'Interesado', to:'Inscrito',   rate:45.6 },
-    { from:'Inscrito',   to:'Ingresante', rate:56.0 },
-    { from:'Ingresante', to:'Pagante',    rate:166.8},
-    { from:'Pagante',    to:'Matriculado',rate:3.6  },
-  ],
-  tiempos: [
-    { etapa:'Interesado → Inscrito',   dias:3.7,  delta:'+0%',   dir:'neutral' },
-    { etapa:'Inscrito → Ingresante',   dias:22.7, delta:'+521%', dir:'bad'     },
-    { etapa:'Ingresante → Pagante',    dias:1.3,  delta:'-94%',  dir:'good'    },
-    { etapa:'Total creación → cierre', dias:24.1, delta:'+1704%',dir:'bad'     },
-  ],
-  estadoLeads: [
-    { estado:'Sin Gestión',   valor:258,  color:C.text3  },
-    { estado:'En Validación', valor:1932, color:C.gold   },
-    { estado:'En Calificación',valor:179, color:C.indigo },
-    { estado:'Calificado',    valor:325,  color:C.green  },
-    { estado:'Descalificado', valor:2906, color:C.red    },
-    { estado:'En Nutrición',  valor:17,   color:C.blue   },
-  ],
-  carreras: [
-    { name:'Enfermería',          leads:704, conv:49 },
-    { name:'Derecho',             leads:436, conv:18 },
-    { name:'Contabilidad',        leads:382, conv:0  },
-    { name:'Ing. Agroindustrial', leads:174, conv:0  },
-    { name:'Ing. Civil',          leads:150, conv:10 },
-    { name:'Estomatología',       leads:112, conv:5  },
-    { name:'Adm. Empresas',       leads:109, conv:7  },
-    { name:'Medicina Humana',     leads:858, conv:54 },
-    { name:'Psicología',          leads:0,   conv:24 },
-    { name:'Ing. Sistemas',       leads:89,  conv:17 },
-  ].sort((a,b)=>b.leads-a.leads),
-  fuentes: [
-    { name:'Google (Search)',  leads:3254, color:C.gold   },
-    { name:'Meta/CTWA',        leads:1531, color:C.blue   },
-    { name:'Búsq. Orgánica',   leads:577,  color:C.green  },
-    { name:'Tráfico Orgánico', leads:231,  color:C.indigo },
-    { name:'Sin valor',        leads:337,  color:C.text3  },
-  ],
-  contacto: [
-    { name:'WhatsApp', value:2162, pct:89 },
-    { name:'Teléfono', value:187,  pct:8  },
-    { name:'Email',    value:81,   pct:3  },
-  ],
-  googleAds: { interesado:20, inscrito:23, ingresante:12, pagante:22, matriculado:2, inversion:519794 },
-  metaInv: 196793,
-  asesores: [
-    { name:'Alessandra Perez',   leads:165, atendidos:60, olvido:4  },
-    { name:'Julio Lamadrid',     leads:138, atendidos:34, olvido:3  },
-    { name:'Lesly Cullampe',     leads:130, atendidos:0,  olvido:0  },
-    { name:'Oscar Silva',        leads:16,  atendidos:16, olvido:1  },
-    { name:'Leonela Aponte',     leads:13,  atendidos:14, olvido:2  },
-    { name:'Wilson Cieza',       leads:0,   atendidos:10, olvido:8  },
-  ],
-  tendencia: [
-    { s:'23/3', leads:150 },{ s:'30/3', leads:229 },{ s:'6/4', leads:217 },
-    { s:'13/4', leads:147 },{ s:'20/4', leads:170 },{ s:'27/4', leads:421 },
-    { s:'4/5',  leads:493 },{ s:'11/5', leads:585 },{ s:'18/5', leads:577 },
-    { s:'25/5', leads:501 },{ s:'1/6',  leads:547 },{ s:'8/6',  leads:635 },
-    { s:'15/6', leads:611 },{ s:'22/6', leads:335 },
-  ],
-};
+/* ── Data ──────────────────────────────────── */
+const FUNNEL = [
+  { key:'interesado',  label:'Interesado',  v:922,  color:C.blue,   icon:'👤' },
+  { key:'inscrito',    label:'Inscrito',     v:420,  color:C.indigo, icon:'📝' },
+  { key:'ingresante',  label:'Ingresante',   v:235,  color:C.purple, icon:'🎓' },
+  { key:'pagante',     label:'Pagante',      v:392,  color:C.gold,   icon:'💳' },
+  { key:'perdido',     label:'No Interesado',v:20,   color:C.red,    icon:'❌' },
+];
 
-// ── Components ──────────────────────────────────────────────────────
+const CARRERAS = [
+  { n:'Medicina Humana',        leads:858,  conv:54, conv_pct:6.3  },
+  { n:'Enfermería',             leads:704,  conv:49, conv_pct:7.0  },
+  { n:'Derecho',                leads:436,  conv:18, conv_pct:4.1  },
+  { n:'Contabilidad',           leads:382,  conv:0,  conv_pct:0    },
+  { n:'Ingeniería Agroindustrial',leads:174,conv:0,  conv_pct:0    },
+  { n:'Ingeniería Civil',       leads:150,  conv:10, conv_pct:6.7  },
+  { n:'Estomatología',          leads:112,  conv:5,  conv_pct:4.5  },
+  { n:'Adm. de Empresas',       leads:109,  conv:7,  conv_pct:6.4  },
+  { n:'Psicología',             leads:0,    conv:24, conv_pct:null },
+  { n:'Ing. de Sistemas',       leads:89,   conv:17, conv_pct:19.1 },
+  { n:'Ing. de Sistemas (dist)',leads:19,   conv:0,  conv_pct:0    },
+  { n:'Derecho (a distancia)',  leads:67,   conv:5,  conv_pct:7.5  },
+  { n:'Adm. y Marketing',       leads:42,   conv:8,  conv_pct:19.0 },
+  { n:'Adm. y Neg. Internac.',  leads:36,   conv:7,  conv_pct:19.4 },
+  { n:'Contabilidad (dist)',    leads:22,   conv:0,  conv_pct:0    },
+  { n:'Adm. de Empresas (dist)',leads:36,   conv:7,  conv_pct:19.4 },
+  { n:'Ing. en Energías',       leads:18,   conv:0,  conv_pct:0    },
+  { n:'Medicina Veterinaria',   leads:549,  conv:6,  conv_pct:1.1  },
+];
 
+const TENDENCIA = [
+  { s:'23/3',leads:150 },{ s:'30/3',leads:229 },{ s:'6/4',leads:217 },
+  { s:'13/4',leads:147 },{ s:'20/4',leads:170 },{ s:'27/4',leads:421 },
+  { s:'4/5', leads:493 },{ s:'11/5',leads:585 },{ s:'18/5',leads:577 },
+  { s:'25/5',leads:501 },{ s:'1/6', leads:547 },{ s:'8/6', leads:635 },
+  { s:'15/6',leads:611 },{ s:'22/6',leads:335 },
+];
+
+const ESTADOS = [
+  { e:'Sin Gestión',    v:258,  color:C.t3    },
+  { e:'En Validación',  v:1932, color:C.gold  },
+  { e:'En Calificación',v:179,  color:C.indigo},
+  { e:'Calificado',     v:325,  color:C.green },
+  { e:'Descalificado',  v:2906, color:C.red   },
+  { e:'En Nutrición',   v:17,   color:C.blue  },
+];
+
+const ASESORES = [
+  { n:'Alessandra Pérez',   asig:165, atend:60,  olvido:4 },
+  { n:'Julio Lamadrid',     asig:138, atend:34,  olvido:3 },
+  { n:'Lesly Cullampe',     asig:130, atend:0,   olvido:0 },
+  { n:'Oscar Silva',        asig:16,  atend:16,  olvido:1 },
+  { n:'Leonela Aponte',     asig:13,  atend:14,  olvido:2 },
+  { n:'Wilson Cieza',       asig:0,   atend:10,  olvido:8 },
+];
+
+/* ── Micro-components ──────────────────────── */
 const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#1C1C25', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
-      <div style={{ color:C.text3, marginBottom:6, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
+    <div style={{ background:'#1C1C25', border:`1px solid ${C.goldB}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
+      <div style={{ color:C.t3, marginBottom:5, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
       {payload.map((p,i)=>(
-        <div key={i} style={{ color:C.text2, fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
+        <div key={i} style={{ color:C.t2, fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
           {p.name}: <span style={{ color:'#fff' }}>{typeof p.value==='number'?p.value.toLocaleString():p.value}</span>
         </div>
       ))}
@@ -106,448 +88,522 @@ const Tip = ({ active, payload, label }) => {
   );
 };
 
-function Kpi({ label, value, sub, color, idx=0, alert }) {
-  const [hov, setHov] = useState(false);
+function StatBadge({ label, value, color=C.gold }) {
   return (
-    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{ background:hov?'#2E2B35':C.carbon, border:`1px solid ${hov?C.goldBorder:'rgba(255,255,255,.07)'}`,
-        borderRadius:8, padding:'18px 20px 16px', position:'relative', overflow:'hidden',
-        boxShadow:hov?`0 8px 32px rgba(0,0,0,.5)`:'0 4px 20px rgba(0,0,0,.4)',
-        transition:'all .2s', transform:hov?'translateY(-3px)':'none',
-        animation:`kpi-rise .4s ${idx*.05}s both` }}>
-      <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:color||C.gold, borderRadius:'8px 0 0 8px' }}/>
-      {alert && <div style={{ position:'absolute', top:12, right:14, fontSize:16 }}>{alert}</div>}
-      <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:hov?C.text2:C.text3, marginBottom:10 }}>{label}</div>
-      <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:34, lineHeight:1, color:hov?'#fff':C.text }}>{value??'—'}</div>
-      {sub && <div style={{ fontSize:11.5, color:hov?C.text2:C.text3, marginTop:6, lineHeight:1.4 }} dangerouslySetInnerHTML={{__html:sub}}/>}
+    <div style={{ background:`${color}11`, border:`1px solid ${color}33`, borderRadius:8, padding:'12px 16px', textAlign:'center' }}>
+      <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:28, color, lineHeight:1 }}>{value}</div>
+      <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:C.t3, marginTop:5 }}>{label}</div>
     </div>
   );
 }
 
-const SecHead = ({ label, sub }) => (
-  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16, marginTop:4 }}>
-    <div style={{ width:22, height:2, background:C.gold, borderRadius:2, flexShrink:0 }}/>
-    <div>
-      <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'3px', textTransform:'uppercase', color:C.gold }}>{label}</span>
-      {sub && <span style={{ fontFamily:'var(--font-semi)', fontSize:10, color:C.text3, marginLeft:12 }}>{sub}</span>}
-    </div>
-  </div>
-);
-
-function Card({ children, style={} }) {
+function SecLabel({ text, action }) {
   return (
-    <div style={{ background:C.carbon, border:'1px solid rgba(255,255,255,.07)', borderRadius:8, padding:20, boxShadow:'0 4px 20px rgba(0,0,0,.4)', ...style }}>
+    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+      <div style={{ width:20, height:2, background:C.gold, borderRadius:2, flexShrink:0 }}/>
+      <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'3px', textTransform:'uppercase', color:C.gold, flex:1 }}>{text}</span>
+      {action}
+    </div>
+  );
+}
+
+function Card({ children, p=20, style={} }) {
+  return (
+    <div style={{ background:C.carbon, border:'1px solid rgba(255,255,255,.07)', borderRadius:10, padding:p, boxShadow:'0 4px 24px rgba(0,0,0,.4)', ...style }}>
       {children}
     </div>
   );
 }
 
-function CardHead({ label, sub }) {
+function KpiTile({ label, value, sub, color=C.gold, icon, alert, idx=0 }) {
+  const [h,setH] = useState(false);
   return (
-    <div style={{ marginBottom:16, paddingBottom:12, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
-      <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:C.text2 }}>{label}</div>
-      {sub && <div style={{ fontSize:11, color:C.text3, marginTop:3 }}>{sub}</div>}
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      style={{ background:h?'#2A2535':C.carbon, border:`1px solid ${h?C.goldB:'rgba(255,255,255,.07)'}`,
+        borderRadius:10, padding:'18px 20px', position:'relative', overflow:'hidden',
+        boxShadow:h?`0 8px 32px rgba(0,0,0,.5), 0 0 0 1px ${C.goldD}`:'0 4px 20px rgba(0,0,0,.4)',
+        transition:'all .18s', transform:h?'translateY(-3px)':'none',
+        animation:`kpi-rise .4s ${idx*.05}s both`, cursor:'default' }}>
+      <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:color, borderRadius:'10px 0 0 10px' }}/>
+      {alert && <div style={{ position:'absolute', top:10, right:12, fontSize:15 }}>{alert}</div>}
+      {icon && <div style={{ fontSize:22, marginBottom:8, opacity:.7 }}>{icon}</div>}
+      <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:h?C.t2:C.t3, marginBottom:8 }}>{label}</div>
+      <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:32, lineHeight:1, color:h?'#fff':C.text }}>{value}</div>
+      {sub && <div style={{ fontSize:11, color:h?C.t2:C.t3, marginTop:6, lineHeight:1.5 }} dangerouslySetInnerHTML={{__html:sub}}/>}
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────
+   MAIN PAGE
+───────────────────────────────────────────── */
 export default function HubSpotPage() {
   const { activeClient } = useApp();
-  const [tab, setTab] = useState('ejecutivo');
-  const [liveData, setLiveData] = useState(null);
+  const [tab, setTab]             = useState('resumen');
   const [pipelines, setPipelines] = useState([]);
-  const [pipelineId, setPipelineId] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [pipelineId, setPId]      = useState('');
+  const [liveData, setLive]       = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [carreraSort, setSort]    = useState('leads');
+  const [carreraFilter, setFilter]= useState('all');
+  const [asesorFilter, setAFilter]= useState('all');
+  const [searchCarrera, setSearch]= useState('');
 
   useEffect(() => {
-    hubspotApi.getPipelines()
-      .then(res => {
-        const pipes = res.data?.pipelines || [];
-        setPipelines(pipes);
-        const admision = pipes.find(p=>p.label?.toLowerCase().includes('2026')||p.label?.toLowerCase().includes('admis')) || pipes[0];
-        if (admision) setPipelineId(admision.id);
-      }).catch(()=>{});
-  }, []);
+    hubspotApi.getPipelines().then(r=>{
+      const pipes = r.data?.pipelines||[];
+      setPipelines(pipes);
+      const p = pipes.find(p=>p.label?.toLowerCase().includes('2026')||p.label?.toLowerCase().includes('admis'))||pipes[0];
+      if(p) setPId(p.id);
+    }).catch(()=>{});
+  },[]);
 
-  useEffect(() => {
-    if (!pipelineId) return;
+  useEffect(()=>{
+    if(!pipelineId) return;
     setLoading(true);
-    hubspotApi.getSummary(pipelineId, 30)
-      .then(res => setLiveData(res.data))
-      .catch(()=>{})
-      .finally(()=>setLoading(false));
-  }, [pipelineId]);
+    hubspotApi.getSummary(pipelineId,30).then(r=>setLive(r.data)).catch(()=>{}).finally(()=>setLoading(false));
+  },[pipelineId]);
 
-  // Merge live data with static if available
-  const funnel = liveData?.funnel?.funnel
-    ? STATIC.funnel.map(s => ({ ...s, value: liveData.funnel.funnel[s.stage.toLowerCase()] || s.value }))
-    : STATIC.funnel;
+  // Merge live funnel if available
+  const liveFunnel = liveData?.funnel?.funnel;
+  const funnel = FUNNEL.map(f => ({ ...f, v: liveFunnel?.[f.key] ?? f.v }));
+  const totalFunnel = funnel.reduce((s,f)=>s+(f.key!=='perdido'?f.v:0),0);
 
-  const totalDesc = STATIC.estadoLeads.find(e=>e.estado==='Descalificado')?.valor || 0;
-  const totalValid = STATIC.estadoLeads.find(e=>e.estado==='En Validación')?.valor || 0;
-  const pctDesc = ((totalDesc / STATIC.totalLeads)*100).toFixed(0);
-  const googleCPM = (STATIC.googleAds.inversion / (STATIC.googleAds.matriculado||1)).toFixed(0);
+  // Filtered/sorted carreras
+  const filteredCarreras = useMemo(()=>{
+    let rows = [...CARRERAS].filter(c=>{
+      if(searchCarrera && !c.n.toLowerCase().includes(searchCarrera.toLowerCase())) return false;
+      if(carreraFilter==='alerta') return c.conv_pct!==null && c.conv_pct<5 && c.leads>50;
+      if(carreraFilter==='top') return c.conv>10;
+      return true;
+    });
+    rows.sort((a,b)=>{
+      if(carreraSort==='leads')    return b.leads-a.leads;
+      if(carreraSort==='conv')     return b.conv-a.conv;
+      if(carreraSort==='conv_pct') return (b.conv_pct||0)-(a.conv_pct||0);
+      return a.n.localeCompare(b.n);
+    });
+    return rows;
+  },[carreraSort,carreraFilter,searchCarrera]);
 
   const TABS = [
-    { k:'ejecutivo', l:'RESUMEN EJECUTIVO' },
-    { k:'embudo',    l:'EMBUDO' },
-    { k:'carreras',  l:'CARRERAS' },
-    { k:'asesores',  l:'ASESORES' },
-    { k:'canales',   l:'CANALES' },
+    { k:'resumen',  l:'📊 Resumen'   },
+    { k:'embudo',   l:'🔻 Embudo'    },
+    { k:'carreras', l:'🎓 Carreras'  },
+    { k:'asesores', l:'👤 Asesores'  },
+    { k:'canales',  l:'📡 Canales'   },
   ];
 
+  /* shared styles */
+  const tabBtn = (k) => ({
+    padding:'9px 18px', fontFamily:'var(--font-semi)', fontSize:11, fontWeight:700,
+    letterSpacing:1.2, textTransform:'uppercase', cursor:'pointer', border:'none',
+    background: tab===k ? 'rgba(220,161,69,.12)' : 'transparent',
+    color: tab===k ? C.gold : C.t3,
+    borderBottom: tab===k ? `2px solid ${C.gold}` : '2px solid transparent',
+    borderRadius: tab===k ? '6px 6px 0 0' : undefined,
+    transition:'all .15s',
+  });
+
+  const filterBtn = (active, onClick, label) => (
+    <button onClick={onClick} style={{
+      padding:'5px 14px', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:1,
+      textTransform:'uppercase', cursor:'pointer', borderRadius:20,
+      border:`1px solid ${active?C.gold:C.slate2}`,
+      background:active?C.goldD:'transparent', color:active?C.gold:C.t3,
+      transition:'all .15s',
+    }}>{label}</button>
+  );
+
   return (
-    <div className="scroll-y" style={{ flex:1, padding:'24px 28px', background:'#14141B' }}>
+    <div className="scroll-y" style={{ flex:1, padding:'22px 28px', background:'#14141B' }}>
 
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:20, flexWrap:'wrap' }}>
-        <h1 style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:26, letterSpacing:2, textTransform:'uppercase', color:'#fff' }}>
-          HubSpot CRM
-        </h1>
-        <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, letterSpacing:1.5, color:C.text3, textTransform:'uppercase' }}>{activeClient.name}</span>
+        <div>
+          <h1 style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:24, letterSpacing:2, textTransform:'uppercase', color:'#fff', lineHeight:1 }}>HubSpot CRM</h1>
+          <div style={{ fontFamily:'var(--font-semi)', fontSize:10, color:C.t3, letterSpacing:1.5, textTransform:'uppercase', marginTop:4 }}>
+            {activeClient.name} · Admisión Pregrado 2026-II
+          </div>
+        </div>
+
         {pipelines.length>0 && (
-          <select value={pipelineId} onChange={e=>setPipelineId(e.target.value)}
-            style={{ padding:'5px 12px', fontSize:11, fontFamily:'var(--font-semi)', fontWeight:700, borderRadius:6, background:'rgba(220,161,69,.06)', borderColor:C.goldBorder, color:C.gold }}>
+          <select value={pipelineId} onChange={e=>setPId(e.target.value)}
+            style={{ padding:'6px 14px', fontSize:11, fontFamily:'var(--font-semi)', fontWeight:700, letterSpacing:.8,
+              borderRadius:8, background:C.goldD, borderColor:C.goldB, color:C.gold, marginLeft:8 }}>
             {pipelines.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
           </select>
         )}
+
         {loading && <span className="spinner"/>}
-        <div style={{ fontFamily:'var(--font-semi)', fontSize:10, color:C.text3, marginLeft:'auto', background:'rgba(255,255,255,.04)', border:'1px solid rgba(255,255,255,.08)', padding:'4px 12px', borderRadius:20 }}>
-          📊 Datos: Proceso 2026-II · Actualizado jun/2026
+
+        {/* Live stats strip */}
+        <div style={{ marginLeft:'auto', display:'flex', gap:8 }}>
+          {[
+            { l:'Total leads', v:'5,930', c:C.blue  },
+            { l:'Calificados', v:'325',   c:C.green },
+            { l:'Descalif.',   v:'2,906', c:C.red   },
+            { l:'Tiempo resp', v:'21.1h', c:C.red   },
+          ].map((s,i)=>(
+            <div key={i} style={{ textAlign:'center', padding:'6px 14px', background:`${s.c}11`, border:`1px solid ${s.c}33`, borderRadius:8 }}>
+              <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:s.c, lineHeight:1 }}>{s.v}</div>
+              <div style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:1, color:C.t3, marginTop:3, textTransform:'uppercase' }}>{s.l}</div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display:'flex', gap:0, marginBottom:24, borderBottom:'1px solid rgba(255,255,255,.07)' }}>
-        {TABS.map(t=>(
-          <button key={t.k} onClick={()=>setTab(t.k)} style={{
-            padding:'8px 20px', fontFamily:'var(--font-semi)', fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-            textTransform:'uppercase', cursor:'pointer', border:'none', background:'transparent',
-            color: tab===t.k ? C.gold : C.text3,
-            borderBottom: tab===t.k ? `2px solid ${C.gold}` : '2px solid transparent',
-            transition:'all .15s',
-          }}>{t.l}</button>
-        ))}
+      <div style={{ display:'flex', gap:2, marginBottom:24, borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+        {TABS.map(t=><button key={t.k} onClick={()=>setTab(t.k)} style={tabBtn(t.k)}>{t.l}</button>)}
       </div>
 
-      {/* ══════════════════════════════════════
-          TAB: RESUMEN EJECUTIVO
-      ══════════════════════════════════════ */}
-      {tab==='ejecutivo' && (<>
+      {/* ═══════════════════════════════════════
+          TAB: RESUMEN
+      ═══════════════════════════════════════ */}
+      {tab==='resumen' && (<>
 
-        {/* Alertas críticas */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:24 }}>
+        {/* Alertas */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:24 }}>
           {[
-            { icon:'🚨', label:'Leads descalificados por asesor', value:`${totalDesc.toLocaleString()} (${pctDesc}%)`, color:C.red, note:'Motivo #1: Asesor no cambia estado' },
-            { icon:'⚠️', label:'Leads atascados en Validación', value:totalValid.toLocaleString(), color:C.gold, note:'33% del total sin trabajar activamente' },
-            { icon:'⏱️', label:'Tiempo Inscrito → Ingresante', value:'22.7 días', color:C.red, note:'Subió +521% vs. período anterior' },
+            { icon:'🚨', title:'Descalificados por asesor', value:'2,906', note:'Motivo #1: asesor no actualiza HubSpot', color:C.red },
+            { icon:'⚠️', title:'Atascados en Validación',   value:'1,932', note:'33% del total sin trabajar activamente', color:C.gold },
+            { icon:'⏱️', title:'Tiempo promedio de respuesta', value:'21.1 hrs', note:'Objetivo <5 min · Gap crítico de ventas', color:C.red },
           ].map((a,i)=>(
-            <div key={i} style={{ background:`${a.color}0D`, border:`1px solid ${a.color}44`, borderLeft:`3px solid ${a.color}`, borderRadius:8, padding:'16px 18px' }}>
-              <div style={{ fontSize:18, marginBottom:6 }}>{a.icon}</div>
-              <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:a.color, marginBottom:6 }}>{a.label}</div>
-              <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:28, color:'#fff', marginBottom:4 }}>{a.value}</div>
-              <div style={{ fontSize:11, color:C.text2 }}>{a.note}</div>
+            <div key={i} style={{ background:`${a.color}0D`, border:`1px solid ${a.color}40`, borderLeft:`3px solid ${a.color}`, borderRadius:10, padding:'16px 20px' }}>
+              <div style={{ fontSize:20, marginBottom:6 }}>{a.icon}</div>
+              <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:a.color, marginBottom:6 }}>{a.title}</div>
+              <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:32, color:'#fff', lineHeight:1, marginBottom:6 }}>{a.value}</div>
+              <div style={{ fontSize:11.5, color:C.t2 }}>{a.note}</div>
             </div>
           ))}
         </div>
 
-        <SecHead label="KPIs del proceso 2026-II"/>
+        {/* KPIs */}
+        <SecLabel text="KPIs del proceso"/>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:14 }}>
-          <Kpi idx={0} label="Total leads digitales" color={C.blue}
-            value={STATIC.totalLeads.toLocaleString()}
-            sub={`Meta proceso: <b>25,000</b> · ${((STATIC.totalLeads/25000)*100).toFixed(1)}% alcanzado`}/>
-          <Kpi idx={1} label="Interesados pipeline" color={C.indigo}
-            value="922"
-            sub={`Admisión Pregrado 2026-II`}/>
-          <Kpi idx={2} label="Matriculados Google Ads" color={C.green}
-            value="2"
-            sub={`De S/ 519,794 invertidos · CPM S/ ${parseInt(googleCPM).toLocaleString()}`} alert="⚠️"/>
-          <Kpi idx={3} label="Tiempo respuesta promedio" color={C.red}
-            value="21.1 hrs"
-            sub={`Objetivo: <b>&lt;5 minutos</b> · Gap crítico`} alert="🚨"/>
+          <KpiTile idx={0} icon="📩" label="Total leads digitales" color={C.blue}  value="5,930" sub={`Meta proceso: <b>25,000</b> · 23.7% alcanzado`}/>
+          <KpiTile idx={1} icon="🎯" label="Leads calificados"     color={C.green} value="325"   sub={`5.5% del total · tasa de calificación`}/>
+          <KpiTile idx={2} icon="✅" label="Matriculados (Google)"  color={C.green} value="2"     sub={`S/ 519,794 invertidos · S/259K por matrícula`} alert="⚠️"/>
+          <KpiTile idx={3} icon="💬" label="Canal preferido"        color={C.gold}  value="89% WA" sub={`2,162 de 2,430 prefieren WhatsApp`}/>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:28 }}>
-          <Kpi idx={4} label="Calificados totales" color={C.green}
-            value="325"
-            sub={`5.5% del total leads · tasa baja`}/>
-          <Kpi idx={5} label="Canal preferido" color={C.gold}
-            value="WhatsApp"
-            sub={`89% de 2,430 contactos prefiere WA`}/>
-          <Kpi idx={6} label="Inversión Google 2026-II" color={C.blue}
-            value="S/ 519,794"
-            sub={`Meta: S/ 196,793 · Total: S/ 716,587`}/>
-          <Kpi idx={7} label="Leads sin propietario (jun)" color={C.red}
-            value="49"
-            sub={`20 en mayo · +145% MoM`} alert="⚠️"/>
+          <KpiTile idx={4} icon="💰" label="Inversión Google 2026-II" color={C.gold}   value="S/519K" sub={`S/ 519,794 · 72.6% del presupuesto`}/>
+          <KpiTile idx={5} icon="📱" label="Inversión Meta 2026-II"   color={C.blue}   value="S/196K" sub={`S/ 196,793 · 27.4% del presupuesto`}/>
+          <KpiTile idx={6} icon="👻" label="Leads sin propietario jun" color={C.red}    value="49"    sub={`20 en mayo · +145% MoM`} alert="⚠️"/>
+          <KpiTile idx={7} icon="⚡" label="Atendidos <10 min"         color={C.red}    value="2"     sub={`De 549 leads enviados a ventas · 0.36%`} alert="🚨"/>
         </div>
 
-        {/* Tendencia semanal */}
-        <SecHead label="Tendencia de leads por semana"/>
-        <Card style={{ marginBottom:28 }}>
-          <CardHead label="Leads digitales recibidos · Semanal" sub="Todas las fuentes pagadas"/>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={STATIC.tendencia} barSize={24}>
-              <XAxis dataKey="s" tick={{ fontSize:9, fill:C.text3 }} axisLine={false} tickLine={false}/>
-              <YAxis tick={{ fontSize:9, fill:C.text3 }} axisLine={false} tickLine={false}/>
-              <CartesianGrid stroke="rgba(255,255,255,.04)" strokeDasharray="4 4"/>
-              <Tooltip content={<Tip/>}/>
-              <Bar dataKey="leads" name="Leads" fill={C.gold} opacity={.85} radius={[3,3,0,0]}/>
-            </BarChart>
-          </ResponsiveContainer>
-          <div style={{ display:'flex', gap:24, marginTop:12, fontSize:11.5, color:C.text3, flexWrap:'wrap' }}>
-            <span>Pico: <strong style={{ color:'#fff' }}>635 leads</strong> (8/jun)</span>
-            <span>Promedio: <strong style={{ color:'#fff' }}>~430 leads/semana</strong></span>
-            <span>Última semana: <strong style={{ color:C.red }}>335 (-47% vs pico)</strong></span>
-          </div>
-        </Card>
-
-        {/* Estado del lead + canal */}
-        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:14, marginBottom:28 }}>
+        {/* Tendencia + Estado */}
+        <div style={{ display:'grid', gridTemplateColumns:'3fr 2fr', gap:14, marginBottom:28 }}>
           <Card>
-            <CardHead label="Estado actual de todos los leads" sub={`${STATIC.totalLeads.toLocaleString()} contactos totales`}/>
-            {STATIC.estadoLeads.map((e,i)=>{
-              const pct = (e.valor/STATIC.totalLeads*100).toFixed(1);
+            <SecLabel text="Tendencia semanal de leads"/>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={TENDENCIA}>
+                <defs>
+                  <linearGradient id="gl" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={C.gold} stopOpacity={.35}/>
+                    <stop offset="95%" stopColor={C.gold} stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="s" tick={{ fontSize:9, fill:C.t3 }} axisLine={false} tickLine={false}/>
+                <YAxis tick={{ fontSize:9, fill:C.t3 }} axisLine={false} tickLine={false}/>
+                <CartesianGrid stroke="rgba(255,255,255,.04)" strokeDasharray="4 4"/>
+                <Tooltip content={<Tip/>}/>
+                <Area type="monotone" dataKey="leads" name="Leads" stroke={C.gold} fill="url(#gl)" strokeWidth={2.5}/>
+              </AreaChart>
+            </ResponsiveContainer>
+            <div style={{ display:'flex', gap:20, marginTop:10, fontSize:11.5, color:C.t3 }}>
+              <span>Pico: <b style={{ color:'#fff' }}>635</b> (8 jun)</span>
+              <span>Promedio: <b style={{ color:'#fff' }}>~430/sem</b></span>
+              <span>Última: <b style={{ color:C.red }}>335 ↓47%</b></span>
+            </div>
+          </Card>
+
+          <Card>
+            <SecLabel text="Estado actual de leads"/>
+            {ESTADOS.map((e,i)=>{
+              const pct = (e.v/5930*100).toFixed(1);
               return (
-                <div key={i} style={{ marginBottom:10 }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                    <span style={{ color:C.text2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{e.estado}</span>
-                    <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-                      <span style={{ fontSize:10.5, color:C.text3 }}>{pct}%</span>
-                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#fff' }}>{e.valor.toLocaleString()}</span>
+                <div key={i} style={{ marginBottom:8 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, marginBottom:3 }}>
+                    <span style={{ color:C.t2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{e.e}</span>
+                    <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                      <span style={{ color:C.t3, fontSize:10 }}>{pct}%</span>
+                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#fff', minWidth:40, textAlign:'right' }}>{e.v.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:4, height:28, overflow:'hidden' }}>
-                    <div style={{ width:`${pct}%`, height:'100%', borderRadius:4, background:e.color, opacity:.85, transition:'width .7s ease' }}/>
+                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:3, height:22, overflow:'hidden' }}>
+                    <div style={{ width:`${pct}%`, height:'100%', background:e.color, opacity:.8, borderRadius:3, transition:'width .7s ease' }}/>
                   </div>
                 </div>
               );
             })}
           </Card>
-          <Card>
-            <CardHead label="Canal de contacto preferido"/>
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={STATIC.contacto} cx="50%" cy="50%" innerRadius={48} outerRadius={70} dataKey="value" paddingAngle={4}>
-                  <Cell fill={C.green}/><Cell fill={C.blue}/><Cell fill={C.gold}/>
-                </Pie>
-                <Tooltip formatter={v=>v.toLocaleString()} contentStyle={{ background:'#1C1C25', border:`1px solid ${C.goldBorder}`, fontSize:12, borderRadius:8 }}/>
-                <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontFamily:'var(--font-semi)', fontSize:10.5 }}/>
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ marginTop:8, fontSize:11.5, color:C.text2, textAlign:'center' }}>
-              <strong style={{ color:C.green }}>89%</strong> prefiere WhatsApp sobre llamada o email
-            </div>
-          </Card>
         </div>
-
       </>)}
 
-      {/* ══════════════════════════════════════
+      {/* ═══════════════════════════════════════
           TAB: EMBUDO
-      ══════════════════════════════════════ */}
+      ═══════════════════════════════════════ */}
       {tab==='embudo' && (<>
-        <SecHead label="Embudo de admisiones Pregrado 2026-II"/>
-        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:16, marginBottom:28 }}>
+        <SecLabel text="Embudo de admisiones · Admisión Pregrado 2026-II"/>
+
+        {/* Stat badges */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10, marginBottom:24 }}>
+          {funnel.map(f=><StatBadge key={f.key} label={f.label} value={f.v.toLocaleString()} color={f.color}/>)}
+        </div>
+
+        <div style={{ display:'grid', gridTemplateColumns:'5fr 3fr', gap:16, marginBottom:24 }}>
+
+          {/* Main funnel */}
           <Card>
-            <CardHead label="Interesado → Matriculado" sub="Pipeline Admisión Pregrado"/>
             {(() => {
-              const max = STATIC.funnel[0].value;
-              return STATIC.funnel.map((s,i)=>{
-                const pct = Math.max((s.value/max)*100, s.value>0?8:0);
-                const prev = i>0 ? STATIC.funnel[i-1].value : null;
-                const conv = prev ? ((s.value/prev)*100).toFixed(1) : null;
+              const max = funnel[0].v;
+              return funnel.filter(f=>f.key!=='perdido').map((f,i,arr)=>{
+                const pct = Math.max((f.v/max)*100, f.v>0?8:2);
+                const prev = i>0?arr[i-1].v:null;
+                const conv = prev ? ((f.v/prev)*100).toFixed(1) : null;
                 return (
-                  <div key={i} style={{ marginBottom:i<STATIC.funnel.length-1?6:0 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:5 }}>
-                      <span style={{ fontFamily:'var(--font-semi)', fontWeight:700, fontSize:13, color:C.text2 }}>{s.stage}</span>
+                  <div key={f.key} style={{ marginBottom:i<arr.length-1?8:0 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <span style={{ fontSize:18 }}>{f.icon}</span>
+                        <span style={{ fontFamily:'var(--font-semi)', fontWeight:700, fontSize:14, color:C.t2 }}>{f.label}</span>
+                      </div>
                       <div style={{ display:'flex', gap:12, alignItems:'center' }}>
                         {conv && (
-                          <span style={{ fontFamily:'var(--font-semi)', fontSize:10.5, fontWeight:700,
-                            color:parseFloat(conv)>50?C.green:parseFloat(conv)>25?C.gold:C.red,
-                            background:'rgba(255,255,255,.05)', padding:'2px 9px', borderRadius:20 }}>
-                            conv. {conv}%
-                          </span>
+                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                            <div style={{ width:60, height:5, background:'rgba(255,255,255,.08)', borderRadius:3 }}>
+                              <div style={{ width:`${Math.min(parseFloat(conv),100)}%`, height:'100%', borderRadius:3, background:parseFloat(conv)>50?C.green:parseFloat(conv)>25?C.gold:C.red }}/>
+                            </div>
+                            <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:700,
+                              color:parseFloat(conv)>50?C.green:parseFloat(conv)>25?C.gold:C.red,
+                              background:'rgba(255,255,255,.05)', padding:'2px 9px', borderRadius:20 }}>
+                              {conv}% conv.
+                            </span>
+                          </div>
                         )}
-                        <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:26, color:'#fff', minWidth:60, textAlign:'right' }}>
-                          {s.value.toLocaleString()}
+                        <span style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:28, color:'#fff', minWidth:65, textAlign:'right' }}>
+                          {f.v.toLocaleString()}
                         </span>
                       </div>
                     </div>
-                    <div style={{ background:'rgba(255,255,255,.05)', borderRadius:5, height:44, overflow:'hidden' }}>
-                      <div style={{ width:`${pct}%`, height:'100%', borderRadius:5,
-                        background:`linear-gradient(90deg,${s.color}88,${s.color})`,
-                        display:'flex', alignItems:'center', paddingLeft:14,
-                        fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,.85)',
-                        transition:'width .8s cubic-bezier(.16,1,.3,1)' }}>
-                        {s.value>0 && `${pct.toFixed(0)}% del top`}
+                    <div style={{ background:'rgba(255,255,255,.05)', borderRadius:6, height:48, overflow:'hidden' }}>
+                      <div style={{
+                        width:`${pct}%`, height:'100%', borderRadius:6,
+                        background:`linear-gradient(90deg,${f.color}77,${f.color})`,
+                        display:'flex', alignItems:'center', paddingLeft:16,
+                        fontFamily:'var(--font-semi)', fontSize:11.5, fontWeight:600, color:'rgba(255,255,255,.9)',
+                        transition:'width .9s cubic-bezier(.16,1,.3,1)',
+                      }}>
+                        {f.v>0&&`${pct.toFixed(0)}% del top`}
                       </div>
                     </div>
-                    {i<STATIC.funnel.length-1 && <div style={{ marginLeft:22, height:8, borderLeft:'1px dashed rgba(255,255,255,.1)' }}/>}
+                    {i<arr.length-1 && <div style={{ marginLeft:26, height:10, borderLeft:'1px dashed rgba(255,255,255,.1)' }}/>}
                   </div>
                 );
               });
             })()}
           </Card>
 
-          {/* Tiempos */}
+          {/* Tiempos + Google funnel */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <Card>
-              <CardHead label="Tiempos promedio de cierre"/>
-              {STATIC.tiempos.map((t,i)=>(
-                <div key={i} style={{ marginBottom:12, paddingBottom:12, borderBottom:i<STATIC.tiempos.length-1?'1px solid rgba(255,255,255,.05)':undefined }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:4 }}>
-                    <span style={{ fontFamily:'var(--font-semi)', fontSize:11, color:C.text2 }}>{t.etapa}</span>
-                    <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:22,
-                      color:t.dir==='good'?C.green:t.dir==='bad'?C.red:C.text }}>
-                      {t.dias}d
-                    </span>
-                  </div>
-                  <div style={{ fontSize:10.5, color:t.dir==='good'?C.green:t.dir==='bad'?C.red:C.text3, fontFamily:'var(--font-semi)', fontWeight:600 }}>
-                    {t.delta} vs. período anterior
+              <SecLabel text="Tiempos de cierre"/>
+              {[
+                { e:'Interesado → Inscrito',   d:'3.7', dir:'ok',  delta:'estable' },
+                { e:'Inscrito → Ingresante',   d:'22.7',dir:'bad', delta:'+521%' },
+                { e:'Ingresante → Pagante',    d:'1.3', dir:'good',delta:'-94%' },
+                { e:'Total → Matrícula',       d:'24.1',dir:'bad', delta:'+1,704%' },
+              ].map((t,i)=>(
+                <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+                  padding:'10px 0', borderBottom:i<3?'1px solid rgba(255,255,255,.05)':undefined }}>
+                  <span style={{ fontSize:11.5, color:C.t2 }}>{t.e}</span>
+                  <div style={{ textAlign:'right' }}>
+                    <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:22,
+                      color:t.dir==='good'?C.green:t.dir==='bad'?C.red:C.text }}>{t.d}d</div>
+                    <div style={{ fontSize:10, color:t.dir==='good'?C.green:t.dir==='bad'?C.red:C.t3, fontFamily:'var(--font-semi)', fontWeight:600 }}>{t.delta}</div>
                   </div>
                 </div>
               ))}
             </Card>
-            {/* Google Ads funnel */}
+
             <Card>
-              <CardHead label="Google Ads 2026-02" sub="S/ 519,794 invertidos"/>
+              <SecLabel text="Google Ads 2026-02" action={<span style={{ fontSize:10, color:C.t3 }}>S/ 519,794</span>}/>
               {[
-                ['Interesado',  STATIC.googleAds.interesado ],
-                ['Inscrito',    STATIC.googleAds.inscrito   ],
-                ['Ingresante',  STATIC.googleAds.ingresante ],
-                ['Pagante',     STATIC.googleAds.pagante    ],
-                ['Matriculado', STATIC.googleAds.matriculado],
-              ].map(([stage,val],i,arr)=>{
-                const pct = (val/arr[0][1]*100).toFixed(0);
-                return (
-                  <div key={stage} style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:8, alignItems:'center' }}>
-                    <span style={{ color:C.text3 }}>{stage}</span>
-                    <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                      <div style={{ background:'rgba(255,255,255,.05)', borderRadius:3, height:6, width:80 }}>
-                        <div style={{ width:`${pct}%`, height:'100%', borderRadius:3, background:C.gold }}/>
-                      </div>
-                      <span style={{ fontWeight:700, color: stage==='Matriculado'?C.green:'#fff', fontFamily:'var(--font-cond)', fontSize:18, minWidth:28, textAlign:'right' }}>{val}</span>
+                { s:'Interesado',   v:20  },
+                { s:'Inscrito',     v:23  },
+                { s:'Ingresante',   v:12  },
+                { s:'Pagante',      v:22  },
+                { s:'Matriculado',  v:2   },
+              ].map((r,i,arr)=>(
+                <div key={r.s} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                  <span style={{ fontSize:11.5, color:r.s==='Matriculado'?C.green:C.t2 }}>{r.s}</span>
+                  <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                    <div style={{ width:80, background:'rgba(255,255,255,.05)', borderRadius:3, height:6 }}>
+                      <div style={{ width:`${(r.v/arr[0].v)*100}%`, height:'100%', borderRadius:3, background:r.s==='Matriculado'?C.green:C.gold }}/>
                     </div>
+                    <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:20,
+                      color:r.s==='Matriculado'?C.green:'#fff', minWidth:30, textAlign:'right' }}>{r.v}</span>
                   </div>
-                );
-              })}
-              <div style={{ marginTop:10, paddingTop:10, borderTop:'1px solid rgba(255,255,255,.06)', fontSize:11.5, color:C.red }}>
-                ⚠️ S/ {parseInt(googleCPM).toLocaleString()} costo por matriculado — revisar atribución
+                </div>
+              ))}
+              <div style={{ marginTop:10, padding:'10px 12px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:11.5, color:C.t2 }}>
+                ⚠️ <strong style={{ color:C.red }}>S/ 259,897 por matriculado</strong> — verificar atribución en pipeline
               </div>
             </Card>
           </div>
         </div>
       </>)}
 
-      {/* ══════════════════════════════════════
+      {/* ═══════════════════════════════════════
           TAB: CARRERAS
-      ══════════════════════════════════════ */}
+      ═══════════════════════════════════════ */}
       {tab==='carreras' && (<>
-        <SecHead label="Leads y conversiones por carrera" sub="Pauta pagada · Proceso 2026-II"/>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:28 }}>
+
+        {/* Filters bar */}
+        <div style={{ display:'flex', gap:8, marginBottom:20, alignItems:'center', flexWrap:'wrap' }}>
+          <input value={searchCarrera} onChange={e=>setSearch(e.target.value)}
+            placeholder="Buscar carrera..." style={{ width:200, padding:'7px 12px', fontSize:12 }}/>
+          <div style={{ display:'flex', gap:6 }}>
+            {filterBtn(carreraFilter==='all',    ()=>setFilter('all'),    'Todas')}
+            {filterBtn(carreraFilter==='top',    ()=>setFilter('top'),    '🏆 Top conv.')}
+            {filterBtn(carreraFilter==='alerta', ()=>setFilter('alerta'), '🚨 Alerta')}
+          </div>
+          <div style={{ marginLeft:'auto', display:'flex', gap:6 }}>
+            <span style={{ fontSize:11, color:C.t3, alignSelf:'center' }}>Ordenar:</span>
+            {[['leads','Leads'],['conv','Convertidos'],['conv_pct','Tasa %']].map(([k,l])=>(
+              filterBtn(carreraSort===k, ()=>setSort(k), l)
+            ))}
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
           <Card>
-            <CardHead label="Leads totales por carrera"/>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={STATIC.carreras.filter(c=>c.leads>0).slice(0,8)} layout="vertical" barSize={20}>
-                <XAxis type="number" tick={{ fontSize:9, fill:C.text3 }} axisLine={false} tickLine={false}/>
-                <YAxis type="category" dataKey="name" tick={{ fontSize:10, fill:C.text2, fontFamily:'var(--font-semi)' }} axisLine={false} tickLine={false} width={130}/>
+            <SecLabel text="Leads por carrera · Top 10"/>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={[...CARRERAS].sort((a,b)=>b.leads-a.leads).filter(c=>c.leads>0).slice(0,10)} layout="vertical" barSize={18}>
+                <XAxis type="number" tick={{ fontSize:9, fill:C.t3 }} axisLine={false} tickLine={false}/>
+                <YAxis type="category" dataKey="n" tick={{ fontSize:9.5, fill:C.t2, fontFamily:'var(--font-semi)' }} axisLine={false} tickLine={false} width={130}/>
                 <Tooltip content={<Tip/>}/>
                 <Bar dataKey="leads" name="Leads" fill={C.blue} opacity={.85} radius={[0,4,4,0]}/>
               </BarChart>
             </ResponsiveContainer>
           </Card>
           <Card>
-            <CardHead label="Convertidos por carrera" sub="Inscrito + Ingresante + Matriculado"/>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={STATIC.carreras.filter(c=>c.conv>0).sort((a,b)=>b.conv-a.conv)} layout="vertical" barSize={20}>
-                <XAxis type="number" tick={{ fontSize:9, fill:C.text3 }} axisLine={false} tickLine={false}/>
-                <YAxis type="category" dataKey="name" tick={{ fontSize:10, fill:C.text2, fontFamily:'var(--font-semi)' }} axisLine={false} tickLine={false} width={130}/>
+            <SecLabel text="Convertidos por carrera · Top 10"/>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={[...CARRERAS].sort((a,b)=>b.conv-a.conv).filter(c=>c.conv>0).slice(0,10)} layout="vertical" barSize={18}>
+                <XAxis type="number" tick={{ fontSize:9, fill:C.t3 }} axisLine={false} tickLine={false}/>
+                <YAxis type="category" dataKey="n" tick={{ fontSize:9.5, fill:C.t2, fontFamily:'var(--font-semi)' }} axisLine={false} tickLine={false} width={130}/>
                 <Tooltip content={<Tip/>}/>
-                <Bar dataKey="conv" name="Convertidos" fill={C.green} opacity={.85} radius={[0,4,4,0]}/>
+                <Bar dataKey="conv" name="Conv." fill={C.green} opacity={.85} radius={[0,4,4,0]}/>
               </BarChart>
             </ResponsiveContainer>
           </Card>
         </div>
 
-        {/* Tabla eficiencia */}
-        <Card>
-          <CardHead label="Eficiencia por carrera · Leads vs Conversión"/>
+        {/* Table */}
+        <Card p={0}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>
+              TABLA DETALLE · {filteredCarreras.length} carreras
+            </span>
+          </div>
           <table className="table">
             <thead>
               <tr>
-                <th style={{ textAlign:'left' }}>CARRERA</th>
-                <th style={{ textAlign:'right' }}>LEADS</th>
-                <th style={{ textAlign:'right' }}>CONV.</th>
-                <th style={{ textAlign:'right' }}>TASA CONV.</th>
-                <th style={{ textAlign:'right' }}>ALERTA</th>
+                <th style={{ textAlign:'left', cursor:'pointer' }} onClick={()=>setSort('n')}>CARRERA ↕</th>
+                <th style={{ textAlign:'right', cursor:'pointer', color:carreraSort==='leads'?C.gold:undefined }} onClick={()=>setSort('leads')}>LEADS ↕</th>
+                <th style={{ textAlign:'right', cursor:'pointer', color:carreraSort==='conv'?C.gold:undefined }} onClick={()=>setSort('conv')}>CONV. ↕</th>
+                <th style={{ textAlign:'right', cursor:'pointer', color:carreraSort==='conv_pct'?C.gold:undefined }} onClick={()=>setSort('conv_pct')}>TASA ↕</th>
+                <th style={{ textAlign:'center' }}>ESTADO</th>
               </tr>
             </thead>
             <tbody>
-              {STATIC.carreras.filter(c=>c.leads>0||c.conv>0).sort((a,b)=>b.leads-a.leads).map(c=>{
-                const rate = c.leads>0 ? ((c.conv/c.leads)*100).toFixed(1) : '—';
-                const rateN = parseFloat(rate)||0;
-                const color = rateN>10?C.green:rateN>5?C.gold:C.red;
+              {filteredCarreras.map(c=>{
+                const tasa = c.conv_pct;
+                const color = tasa===null?C.t3:tasa>10?C.green:tasa>5?C.gold:C.red;
+                const icon = tasa===null?'—':tasa>10?'🏆':tasa>5?'✅':c.leads>100?'🚨':'⚠️';
                 return (
-                  <tr key={c.name}>
-                    <td style={{ fontWeight:600, color:C.text }}>{c.name}</td>
-                    <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{c.leads.toLocaleString()}</td>
-                    <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{c.conv}</td>
+                  <tr key={c.n}>
+                    <td style={{ fontWeight:600, color:C.text }}>{c.n}</td>
+                    <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{c.leads>0?c.leads.toLocaleString():'—'}</td>
+                    <td style={{ textAlign:'right', fontWeight:700, color:c.conv>0?C.green:C.t3 }}>{c.conv>0?c.conv:'—'}</td>
                     <td style={{ textAlign:'right' }}>
-                      <span style={{ color, fontWeight:700 }}>{rate}{rate!=='—'?'%':''}</span>
+                      {tasa!==null
+                        ? <span style={{ color, fontWeight:700 }}>{tasa.toFixed(1)}%</span>
+                        : <span style={{ color:C.t3 }}>—</span>}
                     </td>
-                    <td style={{ textAlign:'right', fontSize:14 }}>
-                      {rateN<5&&c.leads>100?'🚨':rateN<10&&c.leads>50?'⚠️':'✅'}
-                    </td>
+                    <td style={{ textAlign:'center', fontSize:15 }}>{icon}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          <div style={{ padding:'12px 20px', borderTop:'1px solid rgba(255,255,255,.07)', fontSize:11.5, color:C.t3, display:'flex', gap:20 }}>
+            <span>Total leads: <b style={{ color:C.text }}>{filteredCarreras.reduce((s,c)=>s+c.leads,0).toLocaleString()}</b></span>
+            <span>Total conv.: <b style={{ color:C.green }}>{filteredCarreras.reduce((s,c)=>s+c.conv,0)}</b></span>
+          </div>
         </Card>
       </>)}
 
-      {/* ══════════════════════════════════════
+      {/* ═══════════════════════════════════════
           TAB: ASESORES
-      ══════════════════════════════════════ */}
+      ═══════════════════════════════════════ */}
       {tab==='asesores' && (<>
-        <SecHead label="Performance de asesores" sub="Este trimestre · Pipeline Admisión"/>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:24 }}>
-          {[
-            { label:'Leads enviados a ventas', value:'549', color:C.blue },
-            { label:'Leads atendidos por humano', value:'168', sub:'31% del total enviado', color:C.gold },
-            { label:'Tiempo promedio respuesta', value:'21.1 hrs', sub:'Objetivo: <5 min', color:C.red, alert:'🚨' },
-          ].map((k,i)=><Kpi key={i} idx={i} {...k}/>)}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:24 }}>
+          <KpiTile idx={0} icon="📨" label="Enviados a ventas"   color={C.blue}  value="549"     sub="Este trimestre"/>
+          <KpiTile idx={1} icon="✋" label="Atendidos por humano" color={C.gold}  value="168"     sub={`31% del total enviado`}/>
+          <KpiTile idx={2} icon="⚡" label="Atendidos &lt;10 min" color={C.red}   value="2"       sub={`0.36% de 549 leads`} alert="🚨"/>
+          <KpiTile idx={3} icon="⏱️" label="Tiempo prom. respuesta" color={C.red} value="21.1 h" sub={`Objetivo: &lt;5 min`} alert="🚨"/>
         </div>
 
-        <Card style={{ marginBottom:24 }}>
-          <CardHead label="Leads por asesor · Enviados vs Atendidos vs En Olvido"/>
+        {/* Filter buttons */}
+        <div style={{ display:'flex', gap:6, marginBottom:16 }}>
+          {filterBtn(asesorFilter==='all',    ()=>setAFilter('all'),    'Todos')}
+          {filterBtn(asesorFilter==='alerta', ()=>setAFilter('alerta'), '🚨 Con olvidos')}
+          {filterBtn(asesorFilter==='ok',     ()=>setAFilter('ok'),     '✅ Sin olvidos')}
+        </div>
+
+        <Card p={0} style={{ marginBottom:20 }}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>PERFORMANCE POR ASESOR</span>
+          </div>
           <table className="table">
             <thead>
               <tr>
                 <th style={{ textAlign:'left' }}>ASESOR</th>
-                <th style={{ textAlign:'right' }}>LEADS ASIGNADOS</th>
+                <th style={{ textAlign:'right' }}>ASIGNADOS</th>
                 <th style={{ textAlign:'right' }}>ATENDIDOS</th>
                 <th style={{ textAlign:'right' }}>EN OLVIDO</th>
                 <th style={{ textAlign:'right' }}>TASA ATENCIÓN</th>
-                <th style={{ textAlign:'right' }}>ESTADO</th>
+                <th style={{ textAlign:'center' }}>ESTADO</th>
               </tr>
             </thead>
             <tbody>
-              {STATIC.asesores.map((a,i)=>{
-                const tasa = a.leads>0?((a.atendidos/a.leads)*100).toFixed(0):'-';
+              {ASESORES.filter(a=>{
+                if(asesorFilter==='alerta') return a.olvido>=3;
+                if(asesorFilter==='ok')     return a.olvido<3;
+                return true;
+              }).map((a,i)=>{
+                const tasa = a.asig>0 ? ((a.atend/a.asig)*100).toFixed(0) : '—';
                 const tasaN = parseInt(tasa)||0;
+                const icon = a.olvido>=8?'🚨':a.olvido>=3?'⚠️':'✅';
                 return (
                   <tr key={i}>
-                    <td style={{ fontWeight:600, color:C.text }}>{a.name}</td>
-                    <td style={{ textAlign:'right' }}>{a.leads}</td>
-                    <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{a.atendidos}</td>
-                    <td style={{ textAlign:'right', color:a.olvido>3?C.red:C.gold, fontWeight:700 }}>{a.olvido}</td>
+                    <td style={{ fontWeight:600, color:C.text }}>{a.n}</td>
+                    <td style={{ textAlign:'right' }}>{a.asig||'—'}</td>
+                    <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{a.atend}</td>
+                    <td style={{ textAlign:'right', color:a.olvido>=8?C.red:a.olvido>=3?C.gold:C.t3, fontWeight:700 }}>{a.olvido}</td>
                     <td style={{ textAlign:'right' }}>
-                      <span style={{ color:tasaN>50?C.green:tasaN>25?C.gold:C.red, fontWeight:700 }}>{tasa}{tasa!=='-'?'%':''}</span>
+                      {tasa!=='—'
+                        ? <span style={{ color:tasaN>50?C.green:tasaN>25?C.gold:C.red, fontWeight:700 }}>{tasa}%</span>
+                        : <span style={{ color:C.t3 }}>—</span>}
                     </td>
-                    <td style={{ textAlign:'right', fontSize:14 }}>
-                      {a.olvido>=8?'🚨':a.olvido>=3?'⚠️':'✅'}
-                    </td>
+                    <td style={{ textAlign:'center', fontSize:15 }}>{icon}</td>
                   </tr>
                 );
               })}
@@ -557,62 +613,68 @@ export default function HubSpotPage() {
 
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
           <Card>
-            <CardHead label="Leads atendidos antes de 10 min" sub="Solo 2 leads en todo el proceso"/>
-            <div style={{ textAlign:'center', padding:'24px 0' }}>
-              <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:64, color:C.red }}>2</div>
-              <div style={{ fontFamily:'var(--font-semi)', fontSize:12, color:C.text3, marginTop:8 }}>de 549 leads enviados a ventas</div>
-              <div style={{ marginTop:16, padding:'10px 16px', background:C.redDim, border:`1px solid ${C.red}44`, borderRadius:8, fontSize:12, color:C.text2 }}>
-                🚨 Solo el <strong style={{ color:C.red }}>0.36%</strong> fue atendido en menos de 10 minutos
+            <SecLabel text="Atención en menos de 10 min"/>
+            <div style={{ textAlign:'center', padding:'20px 0' }}>
+              <div style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:72, color:C.red, lineHeight:1 }}>2</div>
+              <div style={{ fontFamily:'var(--font-semi)', fontSize:12, color:C.t3, marginTop:8 }}>de 549 leads enviados a ventas</div>
+              <div style={{ marginTop:16, padding:'12px 16px', background:C.redD, border:`1px solid ${C.red}33`, borderRadius:8, fontSize:12, color:C.t2 }}>
+                Solo el <strong style={{ color:C.red }}>0.36%</strong> fue contactado en los primeros 10 minutos. El primer minuto es crítico en admisiones.
               </div>
             </div>
           </Card>
           <Card>
-            <CardHead label="Motivos de descalificación (top)" sub="2,906 leads descalificados total"/>
+            <SecLabel text="Motivos de descalificación"/>
             {[
-              { motivo:'Asesor no cambia estado',    n:2390, color:C.red   },
-              { motivo:'Intento límite',              n:120,  color:C.gold  },
-              { motivo:'No detalla motivo',           n:73,   color:C.text3 },
-              { motivo:'Clases a distancia',          n:63,   color:C.blue  },
-              { motivo:'Eligió otra universidad',     n:58,   color:C.indigo},
-              { motivo:'Factor económico',            n:52,   color:C.text3 },
+              { m:'Asesor no cambia estado', n:2390, color:C.red   },
+              { m:'Intento límite',           n:120,  color:C.gold  },
+              { m:'Sin motivo registrado',    n:73,   color:C.t3   },
+              { m:'Clases a distancia',       n:63,   color:C.blue  },
+              { m:'Eligió otra universidad',  n:58,   color:C.indigo},
+              { m:'Factor económico',         n:52,   color:C.t3   },
+              { m:'Proceso concluido',        n:29,   color:C.t3   },
             ].map((m,i)=>(
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:9 }}>
-                <span style={{ fontSize:11.5, color:i===0?C.text:C.text2, fontWeight:i===0?700:400, maxWidth:'75%' }}>{m.motivo}</span>
-                <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:m.color }}>{m.n.toLocaleString()}</span>
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:9, paddingBottom:9, borderBottom:i<6?'1px solid rgba(255,255,255,.04)':undefined }}>
+                <span style={{ fontSize:11.5, color:i===0?C.text:C.t2, fontWeight:i===0?700:400 }}>{m.m}</span>
+                <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:20, color:m.color }}>{m.n.toLocaleString()}</span>
               </div>
             ))}
           </Card>
         </div>
       </>)}
 
-      {/* ══════════════════════════════════════
+      {/* ═══════════════════════════════════════
           TAB: CANALES
-      ══════════════════════════════════════ */}
+      ═══════════════════════════════════════ */}
       {tab==='canales' && (<>
-        <SecHead label="Performance por canal y fuente de tráfico"/>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:24 }}>
-          <Kpi idx={0} label="Google Ads inversión" color={C.gold} value="S/ 519,794" sub="72.6% del presupuesto 2026-II"/>
-          <Kpi idx={1} label="Meta Ads inversión"   color={C.blue} value="S/ 196,793" sub="27.4% del presupuesto 2026-II"/>
-          <Kpi idx={2} label="Google leads"         color={C.gold} value="3,254"       sub="55% del total leads digitales"/>
-          <Kpi idx={3} label="Meta/CTWA leads"      color={C.blue} value="1,531"       sub="26% del total · medio: ctwa"/>
+          <KpiTile idx={0} icon="🔍" label="Google Ads leads"  color={C.gold} value="3,254" sub="55% del total digital"/>
+          <KpiTile idx={1} icon="📘" label="Meta / CTWA leads" color={C.blue} value="1,531" sub="26% del total · medio ctwa"/>
+          <KpiTile idx={2} icon="🌱" label="Orgánico leads"    color={C.green} value="577"  sub="9.7% del total"/>
+          <KpiTile idx={3} icon="❓" label="Sin UTM"           color={C.red}   value="105"  alert="⚠️" sub="9.3% sin atribución"/>
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:24 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
           <Card>
-            <CardHead label="Leads por fuente de tráfico" sub="Total proceso 2026-II"/>
-            {STATIC.fuentes.map((f,i)=>{
-              const pct = (f.leads/STATIC.totalLeads*100).toFixed(1);
+            <SecLabel text="Leads por fuente"/>
+            {[
+              { n:'Google (Búsqueda pago)', v:3254, color:C.gold   },
+              { n:'Meta / Redes sociales',  v:1531, color:C.blue   },
+              { n:'Búsqueda orgánica',      v:577,  color:C.green  },
+              { n:'Tráfico orgánico',       v:231,  color:C.indigo },
+              { n:'Sin UTM / valor',        v:337,  color:C.t3     },
+            ].map((f,i)=>{
+              const pct = (f.v/5930*100).toFixed(1);
               return (
                 <div key={i} style={{ marginBottom:12 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
-                    <span style={{ color:C.text2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{f.name}</span>
+                    <span style={{ color:C.t2, fontFamily:'var(--font-semi)', fontWeight:600 }}>{f.n}</span>
                     <div style={{ display:'flex', gap:10 }}>
-                      <span style={{ color:C.text3, fontSize:11 }}>{pct}%</span>
-                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#fff' }}>{f.leads.toLocaleString()}</span>
+                      <span style={{ color:C.t3, fontSize:10.5 }}>{pct}%</span>
+                      <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#fff' }}>{f.v.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:4, height:30, overflow:'hidden' }}>
-                    <div style={{ width:`${pct}%`, height:'100%', borderRadius:4, background:f.color, opacity:.85 }}/>
+                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:4, height:28, overflow:'hidden' }}>
+                    <div style={{ width:`${pct}%`, height:'100%', borderRadius:4, background:f.color, opacity:.8, transition:'width .7s ease' }}/>
                   </div>
                 </div>
               );
@@ -620,27 +682,29 @@ export default function HubSpotPage() {
           </Card>
 
           <Card>
-            <CardHead label="Estado del lead por canal"/>
+            <SecLabel text="Calidad de lead por canal"/>
             <table className="table">
               <thead>
                 <tr>
                   <th style={{ textAlign:'left' }}>CANAL</th>
-                  <th style={{ textAlign:'right' }}>CALIFICADOS</th>
+                  <th style={{ textAlign:'right' }}>LEADS</th>
+                  <th style={{ textAlign:'right' }}>CALIFIC.</th>
                   <th style={{ textAlign:'right' }}>DESCALIF.</th>
-                  <th style={{ textAlign:'right' }}>TASA CAL.</th>
+                  <th style={{ textAlign:'right' }}>TASA</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { canal:'Google (Búsq. Pago)', cal:136, desc:1732, total:3254 },
-                  { canal:'Meta (Redes Pago)',   cal:63,  desc:709,  total:1531 },
-                  { canal:'Búsqueda Orgánica',   cal:93,  desc:319,  total:577  },
-                  { canal:'Tráfico Orgánico',    cal:30,  desc:132,  total:231  },
+                  { c:'Google Search', l:3254, cal:136, desc:1732 },
+                  { c:'Meta / CTWA',   l:1531, cal:63,  desc:709  },
+                  { c:'Orgánico',      l:577,  cal:93,  desc:319  },
+                  { c:'Org. Social',   l:231,  cal:30,  desc:132  },
                 ].map((r,i)=>{
-                  const tasa = ((r.cal/r.total)*100).toFixed(1);
+                  const tasa = ((r.cal/r.l)*100).toFixed(1);
                   return (
                     <tr key={i}>
-                      <td style={{ color:C.text, fontWeight:500 }}>{r.canal}</td>
+                      <td style={{ color:C.text, fontWeight:500 }}>{r.c}</td>
+                      <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{r.l.toLocaleString()}</td>
                       <td style={{ textAlign:'right', color:C.green, fontWeight:700 }}>{r.cal}</td>
                       <td style={{ textAlign:'right', color:C.red }}>{r.desc.toLocaleString()}</td>
                       <td style={{ textAlign:'right' }}>
@@ -651,15 +715,19 @@ export default function HubSpotPage() {
                 })}
               </tbody>
             </table>
-            <div style={{ marginTop:14, padding:'12px 14px', background:'rgba(45,212,160,.07)', border:`1px solid rgba(45,212,160,.2)`, borderRadius:8, fontSize:12, color:C.text2 }}>
-              💡 <strong style={{ color:C.green }}>Google califica 3x mejor que Meta</strong> (4.2% vs 4.1%) pero Meta tiene mayor volumen CTWA. Estrategia óptima: Google para calidad, Meta para volumen.
+            <div style={{ marginTop:14, padding:'12px 14px', background:C.greenD, border:`1px solid ${C.green}33`, borderRadius:8, fontSize:12, color:C.t2 }}>
+              💡 Orgánico califica mejor (16.1%) — considera SEO como estrategia de calidad.
             </div>
           </Card>
         </div>
 
-        {/* UTM breakdown */}
-        <Card>
-          <CardHead label="UTM Source / Medium · Leads totales" sub="1,132 con UTM registrado"/>
+        {/* UTM table */}
+        <Card p={0}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+            <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:C.t2 }}>
+              DESGLOSE UTM SOURCE / MEDIUM · 1,132 contactos con UTM
+            </span>
+          </div>
           <table className="table">
             <thead>
               <tr>
@@ -667,29 +735,31 @@ export default function HubSpotPage() {
                 <th style={{ textAlign:'left' }}>UTM MEDIUM</th>
                 <th style={{ textAlign:'right' }}>CONTACTOS</th>
                 <th style={{ textAlign:'right' }}>% DEL TOTAL</th>
+                <th style={{ textAlign:'center' }}>CANAL</th>
               </tr>
             </thead>
             <tbody>
               {[
-                { src:'facebook',      med:'ctwa', n:952,  pct:84.1 },
-                { src:'meta',          med:'ctwa', n:40,   pct:3.5  },
-                { src:'instagram',     med:'ctwa', n:34,   pct:3.0  },
-                { src:'teads',         med:'ctwp', n:1,    pct:0.1  },
-                { src:'(Sin valor)',   med:'—',    n:105,  pct:9.3  },
+                { src:'facebook',    med:'ctwa', n:952, pct:84.1, canal:'Meta WhatsApp' },
+                { src:'meta',        med:'ctwa', n:40,  pct:3.5,  canal:'Meta WA directo' },
+                { src:'instagram',   med:'ctwa', n:34,  pct:3.0,  canal:'Instagram WA' },
+                { src:'teads',       med:'ctwp', n:1,   pct:0.1,  canal:'Teads display' },
+                { src:'(Sin valor)', med:'—',    n:105, pct:9.3,  canal:'Sin trackear ⚠️' },
               ].map((r,i)=>(
                 <tr key={i}>
                   <td style={{ color:C.text, fontWeight:500 }}>{r.src}</td>
-                  <td style={{ color:C.text3 }}>{r.med}</td>
-                  <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>{r.n.toLocaleString()}</td>
+                  <td style={{ color:C.t3 }}>{r.med}</td>
+                  <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontWeight:700 }}>{r.n.toLocaleString()}</td>
                   <td style={{ textAlign:'right' }}>
-                    <span style={{ color:r.pct>50?C.gold:r.pct>5?C.text2:C.text3, fontWeight:r.pct>50?700:400 }}>{r.pct}%</span>
+                    <span style={{ color:r.pct>50?C.gold:r.pct>5?C.t2:C.t3, fontWeight:r.pct>50?700:400 }}>{r.pct}%</span>
                   </td>
+                  <td style={{ textAlign:'center', fontSize:12, color:C.t2 }}>{r.canal}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop:12, fontSize:11.5, color:C.text3, padding:'10px 14px', background:'rgba(255,255,255,.03)', borderRadius:6 }}>
-            ⚠️ <strong style={{ color:C.gold }}>105 leads sin UTM (9.3%)</strong> — pérdida de atribución. Revisar píxeles y parámetros UTM en campañas activas.
+          <div style={{ padding:'12px 20px', borderTop:'1px solid rgba(255,255,255,.07)', fontSize:11.5, color:C.t3 }}>
+            ⚠️ <strong style={{ color:C.gold }}>Facebook CTWA domina con 84.1%</strong> — casi todo el volumen WhatsApp viene de Facebook. Instagram y Meta directo son marginales.
           </div>
         </Card>
       </>)}
