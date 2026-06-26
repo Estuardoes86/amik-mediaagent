@@ -123,30 +123,53 @@ export function aggregateInsights(insights) {
   return totals;
 }
 
-// Extract programa from campaign name (UPSJB naming convention)
+// Extract carrera + sede + type from campaign name
+// UPSJB naming: "2026 2 LEADS [WHATSAPP] CARRERA [SEDE]"
 export function extractPrograma(campaignName) {
-  const n = (campaignName||'').toUpperCase();
-  const programas = [
-    ['Medicina Humana',        ['MEDICINA_HUMANA','MEDICINA HUMANA','MED_HUM','MEDHUM']],
-    ['Enfermería',             ['ENFERMERIA','ENFER','ENFERM']],
-    ['Psicología',             ['PSICOLOG']],
-    ['Derecho',                ['DERECHO','DERE']],
-    ['Contabilidad',           ['CONTABILIDAD','CONTAB']],
-    ['Administración',         ['ADMINISTRACION','ADMIN']],
-    ['Ingeniería de Sistemas', ['ING_SIST','SISTEMAS','INGENIERIA_SIST']],
-    ['Ingeniería Civil',       ['ING_CIVIL','CIVIL']],
-    ['Ingeniería Agroindustrial',['AGROINDUSTRIAL','AGRO']],
-    ['Estomatología',          ['ESTOMATOLOG','ESTOMA']],
-    ['Medicina Veterinaria',   ['VETERINARIA','VET']],
-    ['Ingeniería en Energías', ['ENERGIA','ENERGIAS']],
-    ['Tecnología Médica',      ['TECNOLOGIA_MEDICA','TEC_MED','TECMED']],
-    ['Turismo y Hotelería',    ['TURISMO','HOTELERIA']],
-    ['A Distancia',            ['DISTANCIA','VIRTUAL','DIST']],
+  const raw = (campaignName||'');
+  const n = raw.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+  // Detect sede
+  let sede = 'Presencial';
+  if      (n.includes('DISTANCIA')||n.includes('VIRTUAL'))   sede = 'A Distancia';
+  else if (n.includes('CHORRILLOS'))                          sede = 'Chorrillos';
+  else if (n.includes('SAN BORJA')||n.includes('SANBORJA'))  sede = 'San Borja';
+  else if (/ ICA( |$)/.test(n))                              sede = 'Ica';
+  else if (n.includes('CHINCHA'))                             sede = 'Chincha';
+
+  // Detect type
+  const isWA = n.includes('WHATSAPP');
+
+  // Carrera — most specific first
+  const map = [
+    ['Medicina Humana',                       ['MEDICINA HUMANA']],
+    ['Medicina Veterinaria y Zootecnia',      ['VETERINARIA','ZOOTECNIA']],
+    ['Enfermería',                            ['ENFERMERIA']],
+    ['Psicología',                            ['PSICOLOGIA']],
+    ['Derecho',                               ['DERECHO']],
+    ['Contabilidad',                          ['CONTABILIDAD']],
+    ['Estomatología',                         ['ESTOMATOLOGIA']],
+    ['Ingeniería Agroindustrial',             ['AGROINDUSTRIAL']],
+    ['Ingeniería Civil',                      ['CIVIL']],
+    ['Ingeniería de Sistemas',                ['SISTEMAS']],
+    ['Ingeniería en Enología y Viticultura',  ['ENOLOGIA','VITICULTURA']],
+    ['Terapia Física y Rehabilitación',       ['TERAPIA FISICA','TERAPIA']],
+    ['Laboratorio Clínico',                   ['LABORATORIO']],
+    ['Turismo, Hotelería y Gastronomía',      ['TURISMO','HOTELERIA','GASTRONOMIA']],
+    ['Administración y Marketing',            ['ADMINISTRACION MARKETING','ADMIN MARKETING','ADMINISTRACIÓN MARKETING']],
+    ['Administración y Negocios Int.',        ['NEGOCIOS INTERNACIONALES','NEGOCIOS INT','ADMINISTRACION NEGOCIOS']],
+    ['Administración de Empresas',            ['ADMINISTRACION','ADMIN']],
+    ['Medicina (WA)',                         ['WHATSAPP MEDICINA']],
   ];
-  for (const [prog, keywords] of programas) {
-    if (keywords.some(k => n.includes(k))) return prog;
+
+  // Special: WHATSAPP MEDICINA maps to Medicina Humana
+  if (n.includes('WHATSAPP MEDICINA')) return { carrera:'Medicina Humana', sede, isWA:true };
+
+  let carrera = 'Otros';
+  for (const [c, kws] of map) {
+    if (kws.some(k => n.includes(k))) { carrera = c; break; }
   }
-  return 'Otros';
+  return { carrera, sede, isWA };
 }
 
 export { cache };

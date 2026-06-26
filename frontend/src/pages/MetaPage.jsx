@@ -107,48 +107,38 @@ export default function MetaPage() {
   const waCpl     = waConvs>0   ? (waSpend/waConvs).toFixed(2) : '—';
 
   /* ── By programa (from campaign names) ── */
-  // Extract carrera + sede + type from campaign name (UPSJB naming: "2026 2 LEADS [WHATSAPP] CARRERA [SEDE]")
-  const extractPrograma = (name) => {
-    const n = (name||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    // Sede
-    let sede = 'Presencial';
-    if      (n.includes('DISTANCIA')||n.includes('VIRTUAL'))      sede='A Distancia';
-    else if (n.includes('CHORRILLOS'))                             sede='Chorrillos';
-    else if (n.includes('SAN BORJA')||n.includes('SANBORJA'))     sede='San Borja';
-    else if (n.includes(' ICA ') || n.endsWith(' ICA'))           sede='Ica';
-    else if (n.includes('CHINCHA'))                               sede='Chincha';
-    // Carrera (order: most specific first)
-    const map2 = [
-      ['Medicina Humana',                  ['MEDICINA HUMANA','WHATSAPP MEDICINA']],
-      ['Medicina Veterinaria y Zootecnia', ['VETERINARIA','ZOOTECNIA']],
-      ['Enfermería',                       ['ENFERMERIA']],
-      ['Psicología',                       ['PSICOLOGIA']],
-      ['Derecho',                          ['DERECHO']],
-      ['Contabilidad',                     ['CONTABILIDAD']],
-      ['Estomatología',                    ['ESTOMATOLOGIA']],
-      ['Ingeniería Agroindustrial',        ['AGROINDUSTRIAL']],
-      ['Ingeniería Civil',                 ['WHATSAPP CIVIL',' CIVIL']],
-      ['Ingeniería de Sistemas',           ['SISTEMAS']],
-      ['Ingeniería en Enología',           ['ENOLOGIA']],
-      ['Terapia Física y Rehab.',         ['TERAPIA FISICA']],
-      ['Laboratorio Clínico',             ['LABORATORIO']],
-      ['Turismo y Hotelería',             ['TURISMO','HOTELERIA']],
-      ['Administración y Marketing',       ['ADMINISTRACION MARKETING','ADMIN MARKETING']],
-      ['Adm. y Negocios Int.',            ['NEGOCIOS INTERNACIONALES','NEGOCIOS INT']],
-      ['Administración de Empresas',       ['ADMINISTRACION','ADMIN']],
-    ];
-    let carrera = 'Otros';
-    for (const [c,kws] of map2) { if(kws.some(k=>n.includes(k))){ carrera=c; break; } }
-    return { carrera, sede };
+  // extractPrograma — uses backend field if available, fallback to frontend
+  const extractPrograma = (c) => {
+    if (c.programa && c.programa.carrera) return c.programa;
+    const n = (c.name||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const isWA = n.includes('WHATSAPP');
+    if (n.includes('WHATSAPP MEDICINA')||n.includes('MEDICINA HUMANA')) return { carrera:'Medicina Humana', isWA };
+    if (n.includes('VETERINARIA'))   return { carrera:'Medicina Veterinaria y Zootecnia', isWA };
+    if (n.includes('ENFERMERIA'))    return { carrera:'Enfermería', isWA };
+    if (n.includes('PSICOLOGIA'))    return { carrera:'Psicología', isWA };
+    if (n.includes('TERAPIA'))       return { carrera:'Terapia Física y Rehabilitación', isWA };
+    if (n.includes('LABORATORIO'))   return { carrera:'Laboratorio Clínico', isWA };
+    if (n.includes('DERECHO'))       return { carrera:'Derecho', isWA };
+    if (n.includes('CONTABILIDAD'))  return { carrera:'Contabilidad', isWA };
+    if (n.includes('ESTOMATOLOGIA')) return { carrera:'Estomatología', isWA };
+    if (n.includes('AGROINDUSTRIAL'))return { carrera:'Ingeniería Agroindustrial', isWA };
+    if (n.includes('CIVIL'))         return { carrera:'Ingeniería Civil', isWA };
+    if (n.includes('SISTEMAS'))      return { carrera:'Ingeniería de Sistemas', isWA };
+    if (n.includes('ENOLOGIA'))      return { carrera:'Ingeniería en Enología y Viticultura', isWA };
+    if (n.includes('TURISMO')||n.includes('HOTELERIA')) return { carrera:'Turismo, Hotelería y Gastronomía', isWA };
+    if (n.includes('ADMINISTRACION MARKETING')||n.includes('ADMIN MARKETING')) return { carrera:'Administración y Marketing', isWA };
+    if (n.includes('NEGOCIOS'))      return { carrera:'Administración y Negocios Int.', isWA };
+    if (n.includes('ADMINISTRACION')||n.includes('ADMIN')) return { carrera:'Administración de Empresas', isWA };
+    return { carrera:'Otros', isWA };
   };
 
   const byPrograma = useMemo(()=>{
     const map = {};
     for (const c of campaigns) {
-      const { carrera } = extractPrograma(c.name);
+      const { carrera, isWA: campIsWA } = extractPrograma(c);
       if (!map[carrera]) map[carrera]={ prog:carrera, leadsForm:0, spendForm:0, leadsWA:0, spendWA:0 };
-      if (isWACamp(c)) {
-        map[carrera].leadsWA  += getWA(c)||getClics(c);
+      if (campIsWA || isWACamp(c)) {
+        map[carrera].leadsWA  += getWA(c)||0;
         map[carrera].spendWA  += getSpend(c);
       } else {
         map[carrera].leadsForm += getLeads(c);
@@ -159,9 +149,9 @@ export default function MetaPage() {
       ...p,
       totalLeads: p.leadsForm + p.leadsWA,
       totalSpend: p.spendForm + p.spendWA,
-      cplForm: p.leadsForm>0 ? (p.spendForm/p.leadsForm).toFixed(2) : null,
-      cplWA:   p.leadsWA>0  ? (p.spendWA/p.leadsWA).toFixed(2)     : null,
-      cplTotal:((p.leadsForm+p.leadsWA)>0) ? ((p.spendForm+p.spendWA)/(p.leadsForm+p.leadsWA)).toFixed(2) : null,
+      cplForm:  p.leadsForm>0 ? (p.spendForm/p.leadsForm).toFixed(2) : null,
+      cplWA:    p.leadsWA>0   ? (p.spendWA/p.leadsWA).toFixed(2)    : null,
+      cplTotal: (p.leadsForm+p.leadsWA)>0 ? ((p.spendForm+p.spendWA)/(p.leadsForm+p.leadsWA)).toFixed(2) : null,
     })).sort((a,b)=>b.totalLeads-a.totalLeads);
   },[campaigns]);
 
