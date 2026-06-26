@@ -1,300 +1,206 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 
+const TABS = [
+  { path:'/dashboard',  label:'Dashboard'   },
+  { path:'/inbox',      label:'Inbox'       },
+  { path:'/meta',       label:'Meta Ads'    },
+  { path:'/google',     label:'Google Ads'  },
+  { path:'/hubspot',    label:'HubSpot'     },
+  { path:'/campaigns',  label:'Campañas'    },
+  { path:'/metrics',    label:'Métricas'    },
+  { path:'/audit',      label:'Audit'       },
+  { path:'/ai',         label:'IA Copiloto' },
+  { path:'/reports',    label:'Reportes'    },
+  { path:'/settings',   label:'Config'      },
+];
+
 const PRESETS = [
-  { v:'today',       l:'Hoy'              },
-  { v:'yesterday',   l:'Ayer'             },
-  { v:'last_7d',     l:'Últimos 7 días'   },
-  { v:'last_14d',    l:'Últimos 14 días'  },
-  { v:'last_30d',    l:'Últimos 30 días'  },
-  { v:'last_60d',    l:'Últimos 60 días'  },
-  { v:'this_month',  l:'Este mes'         },
-  { v:'last_month',  l:'Mes anterior'     },
-  { v:'last_quarter',l:'Último trimestre' },
+  { value:'today',        label:'Hoy'              },
+  { value:'yesterday',    label:'Ayer'             },
+  { value:'last_7d',      label:'Últimos 7 días'   },
+  { value:'last_14d',     label:'Últimos 14 días'  },
+  { value:'last_30d',     label:'Últimos 30 días'  },
+  { value:'last_60d',     label:'Últimos 60 días'  },
+  { value:'this_month',   label:'Este mes'         },
+  { value:'last_month',   label:'Mes anterior'     },
+  { value:'last_quarter', label:'Último trimestre' },
+  { value:'custom',       label:'Personalizado'    },
 ];
-
-const NAV = [
-  {
-    label: 'Principal',
-    items: [
-      { path:'/dashboard', icon:'⊞', label:'Dashboard'   },
-      { path:'/inbox',     icon:'🔔', label:'Inbox'       },
-    ]
-  },
-  {
-    label: 'Plataformas',
-    items: [
-      { path:'/meta',      icon:'📘', label:'Meta Ads'    },
-      { path:'/google',    icon:'🔍', label:'Google Ads'  },
-      { path:'/hubspot',   icon:'🟠', label:'HubSpot CRM' },
-    ]
-  },
-  {
-    label: 'Campañas',
-    items: [
-      { path:'/campaigns', icon:'📋', label:'Campañas'    },
-      { path:'/metrics',   icon:'📊', label:'Métricas'    },
-      { path:'/audit',     icon:'🔎', label:'Audit'       },
-    ]
-  },
-  {
-    label: 'Herramientas',
-    items: [
-      { path:'/ai',        icon:'✦',  label:'IA Copiloto' },
-      { path:'/reports',   icon:'📄', label:'Reportes'    },
-      { path:'/settings',  icon:'⚙️', label:'Config'      },
-    ]
-  },
-];
-
-const PAGE_TITLES = {
-  '/dashboard':'Dashboard','/inbox':'Inbox',
-  '/meta':'Meta Ads','/google':'Google Ads','/hubspot':'HubSpot CRM',
-  '/campaigns':'Campañas','/metrics':'Métricas','/audit':'Audit',
-  '/ai':'IA Copiloto','/reports':'Reportes','/settings':'Configuración',
-};
 
 export default function Layout() {
-  const {
-    activeClient, clients, setActiveClient,
-    dateMode, datePreset, setDatePreset,
-    dateRange, applyDateRange
-  } = useApp();
+  const { activeClient, clients, setActiveClient,
+          dateMode, datePreset, setDatePreset,
+          dateRange, applyDateRange } = useApp();
 
-  const location = useLocation();
-  const [showDate,    setShowDate]    = useState(false);
-  const [customSince, setCustomSince] = useState('');
-  const [customUntil, setCustomUntil] = useState('');
-  const dateRef = useRef(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [customSince,    setCustomSince]    = useState(dateRange.since);
+  const [customUntil,    setCustomUntil]    = useState(dateRange.until);
+  const [selectedPreset, setSelectedPreset] = useState('last_30d');
+  const pickerRef = useRef(null);
 
-  // Init custom dates
-  useEffect(()=>{
-    if(dateRange?.since) setCustomSince(dateRange.since);
-    if(dateRange?.until) setCustomUntil(dateRange.until);
-  },[]);
+  useEffect(() => {
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target))
+        setShowDatePicker(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-  // Close date picker on outside click
-  useEffect(()=>{
-    const h = e => { if(dateRef.current && !dateRef.current.contains(e.target)) setShowDate(false); };
-    document.addEventListener('mousedown', h);
-    return ()=>document.removeEventListener('mousedown', h);
-  },[]);
+  const handlePresetClick = (preset) => {
+    if (preset === 'custom') return;
+    setSelectedPreset(preset);
+    setDatePreset(preset);
+    setShowDatePicker(false);
+  };
 
-  const dateLabel = dateMode==='range' && dateRange?.since
-    ? `${dateRange.since} → ${dateRange.until}`
-    : PRESETS.find(p=>p.v===datePreset)?.l || 'Últimos 30 días';
+  const handleApplyCustom = () => {
+    if (!customSince || !customUntil) return;
+    applyDateRange(customSince, customUntil);
+    setSelectedPreset('custom');
+    setShowDatePicker(false);
+  };
 
-  const pageTitle = PAGE_TITLES[location.pathname] || 'AMIK MediaAgent';
+  const displayLabel = () => {
+    if (dateMode === 'range') return `${dateRange.since} → ${dateRange.until}`;
+    return PRESETS.find(p => p.value === datePreset)?.label || 'Últimos 30 días';
+  };
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection:'column', height:'100vh', overflow:'hidden', background:'#F8F9FA', fontFamily:"'Inter', system-ui, sans-serif" }}>
 
-      {/* ── Sidebar ── */}
-      <aside style={{
-        width:220, flexShrink:0,
-        background:'#1A1A2E',
-        borderRight:'1px solid rgba(255,255,255,0.07)',
-        display:'flex', flexDirection:'column',
-        overflowY:'auto',
+      <header style={{
+        display:'flex', alignItems:'center', height:56,
+        background:'#FFFFFF', borderBottom:'1px solid #E5E7EB',
+        flexShrink:0, zIndex:100, boxShadow:'0 1px 3px rgba(0,0,0,0.06)',
       }}>
-        {/* Logo */}
-        <div style={{ padding:'20px 20px 16px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontFamily:'var(--font-tight)', fontWeight:900, fontSize:15, letterSpacing:3, color:'var(--gold)', textTransform:'uppercase' }}>AMIK</div>
-          <div style={{ fontSize:9, fontWeight:600, letterSpacing:2.5, color:'rgba(255,255,255,0.4)', textTransform:'uppercase', marginTop:2 }}>Media Agent</div>
-        </div>
 
-        {/* Client selector — usa AppContext directamente */}
-        <div style={{ padding:'12px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(255,255,255,0.4)', marginBottom:8, paddingLeft:4 }}>
-            Cliente activo
-          </div>
-          <select
-            value={activeClient?.id || ''}
-            onChange={e => setActiveClient(e.target.value)}
-            style={{
-              width:'100%', background:'rgba(255,255,255,0.07)',
-              border:'1px solid rgba(255,255,255,0.12)', color:'#fff',
-              fontSize:12, fontWeight:600, borderRadius:6, padding:'6px 10px',
-              fontFamily:'var(--font)',
-            }}
-          >
-            {(clients||[]).map(c => (
-              <option key={c.id} value={c.id} style={{ background:'#1A1A2E' }}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          {/* Show account IDs for debugging */}
-          {activeClient?.metaAccountId && (
-            <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', marginTop:4, paddingLeft:2 }}>
-              Meta: {activeClient.metaAccountId.slice(0,15)}...
-            </div>
-          )}
-        </div>
-
-        {/* Nav */}
-        {NAV.map(section => (
-          <div key={section.label} style={{ padding:'12px 12px 4px' }}>
-            <div style={{ fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(255,255,255,0.35)', padding:'0 8px', marginBottom:4 }}>
-              {section.label}
-            </div>
-            {section.items.map(item => (
-              <NavLink key={item.path} to={item.path}
-                style={({ isActive }) => ({
-                  display:'flex', alignItems:'center', gap:10,
-                  padding:'8px 10px', borderRadius:6,
-                  fontSize:13, fontWeight: isActive ? 600 : 500,
-                  color: isActive ? 'var(--gold)' : 'rgba(255,255,255,0.55)',
-                  textDecoration:'none', marginBottom:1,
-                  background: isActive ? 'rgba(220,161,69,0.15)' : 'transparent',
-                  transition:'all 0.15s',
-                })}
-              >
-                <span style={{ fontSize:15, width:20, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        ))}
-
-        {/* Bottom */}
-        <div style={{ marginTop:'auto', padding:'12px', borderTop:'1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-            <span className="live-dot"/>
-            <span style={{ fontSize:10.5, fontWeight:600, color:'rgba(255,255,255,0.7)', letterSpacing:0.5 }}>
-              Conectado · LIVE
-            </span>
-          </div>
-          <div style={{ fontSize:10, color:'rgba(255,255,255,0.3)', marginTop:5 }}>AMIK MediaAgent v1.1</div>
-        </div>
-      </aside>
-
-      {/* ── Main ── */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:'var(--bg)' }}>
-
-        {/* Topbar */}
         <div style={{
-          height:52, background:'var(--bg2)', borderBottom:'1px solid var(--border)',
-          display:'flex', alignItems:'center', padding:'0 24px', gap:12,
-          flexShrink:0, boxShadow:'var(--shadow-xs)',
+          display:'flex', alignItems:'center', gap:8,
+          padding:'0 20px', borderRight:'1px solid #F3F4F6',
+          height:'100%', flexShrink:0,
         }}>
-          <div style={{ fontFamily:'var(--font-tight)', fontWeight:700, fontSize:15, color:'var(--text)' }}>
-            {pageTitle}
+          <div style={{
+            width:28, height:28, borderRadius:7,
+            background:'linear-gradient(135deg,#DCA145,#B8832E)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:13, fontWeight:900, color:'#fff',
+          }}>A</div>
+          <div>
+            <div style={{ fontSize:12, fontWeight:800, letterSpacing:'1.5px', color:'#111827', textTransform:'uppercase', lineHeight:1.1 }}>AMIK</div>
+            <div style={{ fontSize:8, fontWeight:600, letterSpacing:'2px', color:'#9CA3AF', textTransform:'uppercase', lineHeight:1.2 }}>MEDIA AGENT</div>
           </div>
+        </div>
 
-          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8 }}>
+        <nav style={{ display:'flex', alignItems:'center', height:'100%', flex:1, overflowX:'auto', padding:'0 8px', gap:2 }}>
+          {TABS.map(tab => (
+            <NavLink key={tab.path} to={tab.path}
+              style={({ isActive }) => ({
+                display:'flex', alignItems:'center',
+                padding:'5px 11px', borderRadius:6,
+                fontSize:12, fontWeight: isActive ? 600 : 500,
+                color: isActive ? '#DCA145' : '#6B7280',
+                background: isActive ? 'rgba(220,161,69,0.08)' : 'transparent',
+                border: isActive ? '1px solid rgba(220,161,69,0.2)' : '1px solid transparent',
+                textDecoration:'none', whiteSpace:'nowrap', transition:'all 0.12s',
+              })}
+            >{tab.label}</NavLink>
+          ))}
+        </nav>
 
-            {/* ── Date picker ── */}
-            <div ref={dateRef} style={{ position:'relative' }}>
-              <button
-                onClick={() => setShowDate(v=>!v)}
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'0 16px', borderLeft:'1px solid #F3F4F6', flexShrink:0 }}>
+
+          <div style={{ display:'flex', gap:4 }}>
+            {clients.map(c => (
+              <button key={c.id} onClick={() => setActiveClient(c.id)}
                 style={{
-                  display:'flex', alignItems:'center', gap:6,
-                  padding:'6px 12px', fontSize:12, fontWeight:600,
-                  border:`1px solid ${showDate?'var(--gold)':'var(--border)'}`,
-                  borderRadius:6, cursor:'pointer',
-                  background: showDate ? 'var(--gold-dim)' : 'var(--bg2)',
-                  color: showDate ? 'var(--gold-dark)' : 'var(--text2)',
-                  transition:'all .15s',
+                  display:'flex', alignItems:'center', gap:5,
+                  padding:'4px 10px', borderRadius:20,
+                  fontSize:11, fontWeight:600,
+                  border: activeClient.id === c.id ? `1.5px solid ${c.color}` : '1.5px solid #E5E7EB',
+                  background: activeClient.id === c.id ? `${c.color}14` : '#fff',
+                  color: activeClient.id === c.id ? c.color : '#6B7280',
+                  cursor:'pointer', transition:'all 0.12s',
                 }}
               >
-                <span>📅</span>
-                <span>{dateLabel}</span>
-                <span style={{ fontSize:9, opacity:.5 }}>▼</span>
+                <span style={{ width:6, height:6, borderRadius:'50%', background: activeClient.id === c.id ? c.color : '#D1D5DB', flexShrink:0 }}/>
+                {c.name}
               </button>
+            ))}
+          </div>
 
-              {showDate && (
-                <div style={{
-                  position:'absolute', top:'calc(100% + 6px)', right:0, zIndex:999,
-                  background:'var(--bg2)', border:'1px solid var(--border)',
-                  borderRadius:10, boxShadow:'var(--shadow-lg)', minWidth:240,
-                  overflow:'hidden',
-                }}>
-                  {/* Preset list */}
-                  <div style={{ padding:'6px 0', borderBottom:'1px solid var(--border)' }}>
-                    {PRESETS.map(p=>(
-                      <button key={p.v}
-                        onClick={()=>{ setDatePreset(p.v); setShowDate(false); }}
-                        style={{
-                          display:'block', width:'100%', textAlign:'left',
-                          padding:'8px 16px', fontSize:13,
-                          fontWeight: datePreset===p.v&&dateMode==='preset' ? 600 : 400,
-                          background: datePreset===p.v&&dateMode==='preset' ? 'var(--gold-dim)' : 'transparent',
-                          color: datePreset===p.v&&dateMode==='preset' ? 'var(--gold-dark)' : 'var(--text2)',
-                          border:'none', cursor:'pointer',
-                        }}
-                        onMouseEnter={e=>{ if(!(datePreset===p.v&&dateMode==='preset')) e.currentTarget.style.background='var(--bg3)'; }}
-                        onMouseLeave={e=>{ e.currentTarget.style.background=datePreset===p.v&&dateMode==='preset'?'var(--gold-dim)':'transparent'; }}
-                      >
-                        {datePreset===p.v&&dateMode==='preset'&&'✓ '}{p.l}
-                      </button>
-                    ))}
-                  </div>
+          <div ref={pickerRef} style={{ position:'relative' }}>
+            <button onClick={() => setShowDatePicker(v => !v)}
+              style={{
+                display:'flex', alignItems:'center', gap:6,
+                padding:'5px 12px', borderRadius:7,
+                background: showDatePicker ? 'rgba(220,161,69,0.08)' : '#F9FAFB',
+                border: `1px solid ${showDatePicker ? 'rgba(220,161,69,0.35)' : '#E5E7EB'}`,
+                color: showDatePicker ? '#DCA145' : '#374151',
+                fontSize:12, fontWeight:500, cursor:'pointer', transition:'all 0.12s', whiteSpace:'nowrap',
+              }}
+            >
+              📅 {displayLabel()} <span style={{ fontSize:9, opacity:0.5 }}>▼</span>
+            </button>
 
-                  {/* Custom range */}
-                  <div style={{ padding:'14px 16px' }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:'var(--text3)', marginBottom:10, textTransform:'uppercase', letterSpacing:1 }}>
-                      Rango personalizado
-                    </div>
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
-                      <div>
-                        <div style={{ fontSize:11, color:'var(--text3)', marginBottom:4, fontWeight:500 }}>Desde</div>
-                        <input type="date" value={customSince}
-                          onChange={e=>setCustomSince(e.target.value)}
-                          style={{ fontSize:12, padding:'6px 8px' }}/>
-                      </div>
-                      <div>
-                        <div style={{ fontSize:11, color:'var(--text3)', marginBottom:4, fontWeight:500 }}>Hasta</div>
-                        <input type="date" value={customUntil}
-                          onChange={e=>setCustomUntil(e.target.value)}
-                          style={{ fontSize:12, padding:'6px 8px' }}/>
-                      </div>
-                    </div>
-                    <button
-                      className="btn btn-primary"
-                      style={{ width:'100%', justifyContent:'center' }}
-                      onClick={()=>{
-                        if(customSince && customUntil) {
-                          applyDateRange(customSince, customUntil);
-                          setShowDate(false);
-                        }
+            {showDatePicker && (
+              <div style={{
+                position:'absolute', top:'calc(100% + 8px)', right:0, zIndex:999,
+                background:'#fff', border:'1px solid #E5E7EB',
+                borderRadius:10, boxShadow:'0 8px 32px rgba(0,0,0,0.12)', minWidth:240, overflow:'hidden',
+              }}>
+                <div style={{ padding:'6px 0' }}>
+                  {PRESETS.filter(p => p.value !== 'custom').map(p => (
+                    <button key={p.value} onClick={() => handlePresetClick(p.value)}
+                      style={{
+                        display:'block', width:'100%', textAlign:'left', padding:'8px 16px',
+                        background: selectedPreset === p.value ? 'rgba(220,161,69,0.07)' : 'transparent',
+                        border:'none', color: selectedPreset === p.value ? '#DCA145' : '#374151',
+                        fontSize:13, fontWeight: selectedPreset === p.value ? 600 : 400, cursor:'pointer',
                       }}
                     >
-                      Aplicar rango
+                      {selectedPreset === p.value && <span style={{ marginRight:8, fontSize:10 }}>✓</span>}
+                      {p.label}
                     </button>
-                    {dateMode==='range' && (
-                      <button
-                        className="btn btn-ghost"
-                        style={{ width:'100%', justifyContent:'center', marginTop:6, fontSize:11 }}
-                        onClick={()=>{ setDatePreset('last_30d'); setShowDate(false); }}
-                      >
-                        Limpiar — volver a Últimos 30 días
-                      </button>
-                    )}
-                  </div>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            {/* Active period pill */}
-            {dateMode==='range' && (
-              <span style={{
-                fontSize:11, fontWeight:600, color:'var(--gold-dark)',
-                background:'var(--gold-dim)', border:'1px solid var(--gold-border)',
-                padding:'4px 10px', borderRadius:20,
-              }}>
-                📅 Rango personalizado activo
-              </span>
+                <div style={{ borderTop:'1px solid #F3F4F6', padding:'12px 14px 14px' }}>
+                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:'1.5px', textTransform:'uppercase', color:'#9CA3AF', marginBottom:8 }}>Rango personalizado</div>
+                  <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:10, color:'#9CA3AF', marginBottom:4, fontWeight:600 }}>DESDE</div>
+                      <input type="date" value={customSince} onChange={e => setCustomSince(e.target.value)}
+                        style={{ width:'100%', padding:'5px 8px', fontSize:12, background:'#F9FAFB', border:'1px solid #E5E7EB', color:'#111827', borderRadius:6 }}/>
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:10, color:'#9CA3AF', marginBottom:4, fontWeight:600 }}>HASTA</div>
+                      <input type="date" value={customUntil} onChange={e => setCustomUntil(e.target.value)}
+                        style={{ width:'100%', padding:'5px 8px', fontSize:12, background:'#F9FAFB', border:'1px solid #E5E7EB', color:'#111827', borderRadius:6 }}/>
+                    </div>
+                  </div>
+                  <button onClick={handleApplyCustom}
+                    style={{
+                      width:'100%', padding:'7px', borderRadius:6,
+                      background:'linear-gradient(135deg,#DCA145,#B8832E)', border:'none', color:'#fff',
+                      fontSize:11, fontWeight:700, letterSpacing:'1px', textTransform:'uppercase', cursor:'pointer',
+                    }}
+                  >Aplicar rango</button>
+                </div>
+              </div>
             )}
+          </div>
 
+          <div style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, background:'#ECFDF5', border:'1px solid #A7F3D0' }}>
+            <span className="live-dot"/>
+            <span style={{ fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:'#059669', textTransform:'uppercase' }}>LIVE</span>
           </div>
         </div>
+      </header>
 
-        {/* Page */}
-        <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-          <Outlet/>
-        </div>
+      <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+        <Outlet />
       </div>
     </div>
   );
