@@ -1,15 +1,16 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './context/AppContext.jsx';
+import { AppProvider }   from './context/AppContext.jsx';
 import { ToastContainer } from './components/Toast.jsx';
-import Layout from './components/Layout.jsx';
-import InboxPage from './pages/InboxPage.jsx';
-import MetricsPage from './pages/MetricsPage.jsx';
-import AuditPage from './pages/AuditPage.jsx';
-import CampaignsPage from './pages/CampaignsPage.jsx';
-import AiPage from './pages/AiPage.jsx';
-import ReportsPage from './pages/ReportsPage.jsx';
-import SettingsPage from './pages/SettingsPage.jsx';
+import Layout            from './components/Layout.jsx';
+import InboxPage         from './pages/InboxPage.jsx';
+import MetricsPage       from './pages/MetricsPage.jsx';
+import AuditPage         from './pages/AuditPage.jsx';
+import CampaignsPage     from './pages/CampaignsPage.jsx';
+import AiPage            from './pages/AiPage.jsx';
+import ReportsPage       from './pages/ReportsPage.jsx';
+import SettingsPage      from './pages/SettingsPage.jsx';
+import HubSpotPage       from './pages/HubSpotPage.jsx';
 import './index.css';
 
 export default function App() {
@@ -18,13 +19,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/inbox" replace />} />
-          <Route path="inbox" element={<InboxPage />} />
-          <Route path="metrics" element={<MetricsPage />} />
-          <Route path="audit" element={<AuditPage />} />
+          <Route path="inbox"     element={<InboxPage />} />
+          <Route path="metrics"   element={<MetricsPage />} />
           <Route path="campaigns" element={<CampaignsPage />} />
-          <Route path="ai" element={<AiPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="hubspot"   element={<HubSpotPage />} />
+          <Route path="audit"     element={<AuditPage />} />
+          <Route path="ai"        element={<AiPage />} />
+          <Route path="reports"   element={<ReportsPage />} />
+          <Route path="settings"  element={<SettingsPage />} />
         </Route>
       </Routes>
       <ToastContainer />
