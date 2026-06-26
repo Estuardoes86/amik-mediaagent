@@ -109,7 +109,7 @@ function Kpi({ label, value, sub, color=C.gold, icon, alert, idx=0 }) {
   const [h,setH] = useState(false);
   return (
     <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{ background:h?'#2A2535':C.carbon, border:`1px solid ${h?C.goldB:'rgba(255,255,255,.07)'}`,
+      style={{ background:'#fff', border:`1px solid ${h?C.goldB:'#E5E7EB'}`,
         borderRadius:10, padding:'16px 18px', position:'relative', overflow:'hidden',
         boxShadow:h?`0 8px 32px rgba(0,0,0,.5)`:' 0 4px 20px rgba(0,0,0,.4)',
         transition:'all .18s', transform:h?'translateY(-3px)':'none',
@@ -200,7 +200,7 @@ export default function HubSpotPage() {
   }));
 
   return (
-    <div className="scroll-y" style={{ flex:1, padding:'22px 28px', background:'#14141B' }}>
+    <div className="scroll-y" style={{ flex:1, padding:'22px 28px', background:'#F8F9FA' }}>
 
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20, flexWrap:'wrap' }}>
@@ -316,7 +316,7 @@ export default function HubSpotPage() {
                       <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#fff', minWidth:38, textAlign:'right' }}>{e.v.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:3, height:22, overflow:'hidden' }}>
+                  <div style={{ background:'#F3F4F6', borderRadius:3, height:22, overflow:'hidden' }}>
                     <div style={{ width:`${pct}%`, height:'100%', background:e.color, opacity:.8, borderRadius:3 }}/>
                   </div>
                 </div>
@@ -358,7 +358,7 @@ export default function HubSpotPage() {
                         {conv&&(
                           <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:700,
                             color:parseFloat(conv)>50?C.green:parseFloat(conv)>25?C.gold:C.red,
-                            background:'rgba(255,255,255,.05)', padding:'2px 9px', borderRadius:20 }}>
+                            background:'#F3F4F6', padding:'2px 9px', borderRadius:20 }}>
                             {conv}% conv.
                           </span>
                         )}
@@ -367,7 +367,7 @@ export default function HubSpotPage() {
                         </span>
                       </div>
                     </div>
-                    <div style={{ background:'rgba(255,255,255,.05)', borderRadius:6, height:48, overflow:'hidden' }}>
+                    <div style={{ background:'#F3F4F6', borderRadius:6, height:48, overflow:'hidden' }}>
                       <div style={{ width:`${pct}%`, height:'100%', borderRadius:6,
                         background:`linear-gradient(90deg,${f.color}77,${f.color})`,
                         display:'flex', alignItems:'center', paddingLeft:16,
@@ -409,7 +409,7 @@ export default function HubSpotPage() {
                 <div key={r.s} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                   <span style={{ fontSize:11.5, color:r.s==='Matriculado'?C.green:C.t2 }}>{r.s}</span>
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                    <div style={{ width:80, background:'rgba(255,255,255,.05)', borderRadius:3, height:6 }}>
+                    <div style={{ width:80, background:'#F3F4F6', borderRadius:3, height:6 }}>
                       <div style={{ width:`${(r.v/a[0].v)*100}%`, height:'100%', borderRadius:3, background:r.s==='Matriculado'?C.green:C.gold }}/>
                     </div>
                     <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:20, color:r.s==='Matriculado'?C.green:'#fff', minWidth:28, textAlign:'right' }}>{r.v}</span>
@@ -536,7 +536,7 @@ export default function HubSpotPage() {
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" paddingAngle={3}>
                   {pieData.map((d,i)=><Cell key={i} fill={d.color}/>)}
                 </Pie>
-                <Tooltip formatter={v=>`${v.toLocaleString()} leads`} contentStyle={{ background:'#1C1C25', border:`1px solid ${C.goldB}`, fontSize:12, borderRadius:8 }}/>
+                <Tooltip formatter={v=>`${v.toLocaleString()} leads`} contentStyle={{ background:'#fff', border:`1px solid ${C.goldB}`, fontSize:12, borderRadius:8 }}/>
                 <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontFamily:'var(--font-semi)', fontSize:10.5 }}/>
               </PieChart>
             </ResponsiveContainer>
@@ -733,7 +733,7 @@ export default function HubSpotPage() {
                       <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:18, color:'#fff' }}>{f.v.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div style={{ background:'rgba(255,255,255,.05)', borderRadius:4, height:28, overflow:'hidden' }}>
+                  <div style={{ background:'#F3F4F6', borderRadius:4, height:28, overflow:'hidden' }}>
                     <div style={{ width:`${pct}%`, height:'100%', borderRadius:4, background:f.color, opacity:.8 }}/>
                   </div>
                 </div>
