@@ -144,22 +144,25 @@ export default function MetaPage() {
 
   const byPrograma = useMemo(()=>{
     const map = {};
-    for (const c of campaigns.filter(c=>!isWACamp(c))) {
+    for (const c of campaigns) {
       const { carrera } = extractPrograma(c.name);
-      if (!map[carrera]) map[carrera]={prog:carrera,leads:0,spend:0};
-      map[carrera].leads += getLeads(c);
-      map[carrera].spend += getSpend(c);
+      if (!map[carrera]) map[carrera]={ prog:carrera, leadsForm:0, spendForm:0, leadsWA:0, spendWA:0 };
+      if (isWACamp(c)) {
+        map[carrera].leadsWA  += getWA(c)||getClics(c);
+        map[carrera].spendWA  += getSpend(c);
+      } else {
+        map[carrera].leadsForm += getLeads(c);
+        map[carrera].spendForm += getSpend(c);
+      }
     }
-    // Also add WA campaigns grouped by carrera
-    for (const c of campaigns.filter(c=>isWACamp(c))) {
-      const { carrera } = extractPrograma(c.name);
-      const key = carrera+' (WA)';
-      if (!map[key]) map[key]={prog:key,leads:0,spend:0,isWA:true};
-      map[key].leads += getWA(c)||getClics(c);
-      map[key].spend += getSpend(c);
-    }
-    return Object.values(map).map(p=>({...p, cpl:p.leads>0?(p.spend/p.leads).toFixed(2):null}))
-      .sort((a,b)=>b.leads-a.leads);
+    return Object.values(map).map(p=>({
+      ...p,
+      totalLeads: p.leadsForm + p.leadsWA,
+      totalSpend: p.spendForm + p.spendWA,
+      cplForm: p.leadsForm>0 ? (p.spendForm/p.leadsForm).toFixed(2) : null,
+      cplWA:   p.leadsWA>0  ? (p.spendWA/p.leadsWA).toFixed(2)     : null,
+      cplTotal:((p.leadsForm+p.leadsWA)>0) ? ((p.spendForm+p.spendWA)/(p.leadsForm+p.leadsWA)).toFixed(2) : null,
+    })).sort((a,b)=>b.totalLeads-a.totalLeads);
   },[campaigns]);
 
   /* ── Filtered campaigns ── */
@@ -552,36 +555,73 @@ export default function MetaPage() {
         </div>
 
         <div className="card">
-          <div className="card-head"><div className="card-title">Tabla detalle por programa</div></div>
-          <table className="table">
+          <div className="card-head">
+            <div className="card-title">Detalle por programa · Lead Ads vs WhatsApp</div>
+            <div style={{ display:'flex', gap:16, fontSize:11, color:'var(--text3)' }}>
+              <span style={{ color:'var(--blue)', fontWeight:600 }}>● Lead Ads</span>
+              <span style={{ color:'var(--green)', fontWeight:600 }}>● WhatsApp</span>
+            </div>
+          </div>
+          <div style={{ overflowX:'auto' }}>
+          <table className="table" style={{ minWidth:860 }}>
             <thead>
               <tr>
                 <th style={{ textAlign:'left' }}>PROGRAMA</th>
-                <th style={{ textAlign:'right' }}>LEADS</th>
-                <th style={{ textAlign:'right' }}>INVERSIÓN</th>
-                <th style={{ textAlign:'right' }}>CPL</th>
+                <th style={{ textAlign:'right', color:'var(--blue)' }}>LEADS FORM.</th>
+                <th style={{ textAlign:'right', color:'var(--blue)' }}>INV. FORM.</th>
+                <th style={{ textAlign:'right', color:'var(--blue)' }}>CPL FORM.</th>
+                <th style={{ textAlign:'right', color:'#25D366' }}>CONV. WA</th>
+                <th style={{ textAlign:'right', color:'#25D366' }}>INV. WA</th>
+                <th style={{ textAlign:'right', color:'#25D366' }}>CPL WA</th>
+                <th style={{ textAlign:'right', fontWeight:700 }}>TOTAL</th>
                 <th style={{ textAlign:'center' }}>EFICIENCIA</th>
               </tr>
             </thead>
             <tbody>
               {byPrograma.map((p,i)=>{
-                const cplN=parseFloat(p.cpl)||0;
-                const eff=!p.cpl?'Sin datos':cplN<35?'Excelente':cplN<50?'Bueno':cplN<70?'Regular':'Revisar';
-                const effC=!p.cpl?'tag-gray':cplN<35?'tag-green':cplN<50?'tag-gold':cplN<70?'tag-yellow':'tag-red';
+                const cplN=parseFloat(p.cplTotal)||0;
+                const cplFN=parseFloat(p.cplForm)||0;
+                const cplWN=parseFloat(p.cplWA)||0;
+                const eff=!p.cplTotal?'Sin datos':cplN<15?'Excelente':cplN<30?'Bueno':cplN<50?'Regular':'Revisar';
+                const effC=!p.cplTotal?'tag-gray':cplN<15?'tag-green':cplN<30?'tag-gold':cplN<50?'tag-yellow':'tag-red';
                 return (
                   <tr key={i}>
-                    <td style={{ fontWeight:500, color:'var(--text)' }}>{p.prog}</td>
-                    <td style={{ textAlign:'right', fontWeight:600, color:'var(--green)' }}>{p.leads}</td>
-                    <td style={{ textAlign:'right', fontFamily:'var(--mono)' }}>S/ {fmt(p.spend)}</td>
+                    <td style={{ fontWeight:600, color:'var(--text)', minWidth:180 }}>{p.prog}</td>
+                    <td style={{ textAlign:'right', color:'var(--blue)', fontWeight:600 }}>{p.leadsForm>0?p.leadsForm.toLocaleString():'—'}</td>
+                    <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontSize:12 }}>{p.spendForm>0?`S/ ${fmt(p.spendForm)}`:'—'}</td>
                     <td style={{ textAlign:'right' }}>
-                      {p.cpl?<span className={cplN<35?'cpl-good':cplN<50?'cpl-mid':'cpl-high'}>S/ {p.cpl}</span>:'—'}
+                      {p.cplForm?<span className={cplFN<35?'cpl-good':cplFN<60?'cpl-mid':'cpl-high'}>S/ {p.cplForm}</span>:'—'}
                     </td>
+                    <td style={{ textAlign:'right', color:'#25D366', fontWeight:600 }}>{p.leadsWA>0?p.leadsWA.toLocaleString():'—'}</td>
+                    <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontSize:12 }}>{p.spendWA>0?`S/ ${fmt(p.spendWA)}`:'—'}</td>
+                    <td style={{ textAlign:'right' }}>
+                      {p.cplWA?<span className={cplWN<5?'cpl-good':cplWN<15?'cpl-mid':'cpl-high'}>S/ {p.cplWA}</span>:'—'}
+                    </td>
+                    <td style={{ textAlign:'right', fontWeight:700, color:'var(--text)' }}>{p.totalLeads.toLocaleString()}</td>
                     <td style={{ textAlign:'center' }}><span className={`tag ${effC}`}>{eff}</span></td>
                   </tr>
                 );
               })}
             </tbody>
+            <tfoot>
+              <tr style={{ background:'var(--bg3)', borderTop:'2px solid var(--border)' }}>
+                <td style={{ fontWeight:700, color:'var(--gold)', fontFamily:'var(--font-tight)', fontSize:12 }}>TOTAL</td>
+                <td style={{ textAlign:'right', fontWeight:700, color:'var(--blue)' }}>{byPrograma.reduce((s,p)=>s+p.leadsForm,0).toLocaleString()}</td>
+                <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontWeight:600 }}>S/ {fmt(byPrograma.reduce((s,p)=>s+p.spendForm,0))}</td>
+                <td style={{ textAlign:'right', fontWeight:600 }}>
+                  {(()=>{const tl=byPrograma.reduce((s,p)=>s+p.leadsForm,0),ts=byPrograma.reduce((s,p)=>s+p.spendForm,0);return tl>0?`S/ ${(ts/tl).toFixed(2)}`:'—';})()}
+                </td>
+                <td style={{ textAlign:'right', fontWeight:700, color:'#25D366' }}>{byPrograma.reduce((s,p)=>s+p.leadsWA,0).toLocaleString()}</td>
+                <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontWeight:600 }}>S/ {fmt(byPrograma.reduce((s,p)=>s+p.spendWA,0))}</td>
+                <td style={{ textAlign:'right', fontWeight:600 }}>
+                  {(()=>{const tl=byPrograma.reduce((s,p)=>s+p.leadsWA,0),ts=byPrograma.reduce((s,p)=>s+p.spendWA,0);return tl>0?`S/ ${(ts/tl).toFixed(2)}`:'—';})()}
+                </td>
+                <td style={{ textAlign:'right', fontWeight:800, color:'var(--text)' }}>{byPrograma.reduce((s,p)=>s+p.totalLeads,0).toLocaleString()}</td>
+                <td/>
+              </tr>
+            </tfoot>
           </table>
+          </div>
         </div>
       </>)}
 
