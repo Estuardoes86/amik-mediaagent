@@ -12,8 +12,8 @@ const C = {
   blue:'#5B8DB8',  blueD:'rgba(91,141,184,.12)',
   red:'#E8445A',   redD:'rgba(232,68,90,.10)',
   purple:'#9061B0',indigo:'#7B68EE',
-  carbon:'#262630',slate:'#30373F',slate2:'#3D4550',
-  text:'#F0EDE8',  t2:'#9CA3AA', t3:'#5C6470',
+  carbon:'#FFFFFF',slate:'#F8F9FA',slate2:'#F3F4F6',
+  text:'#111827',  t2:'#6B7280', t3:'#9CA3AF',
 };
 
 const SEDES = [
@@ -80,11 +80,11 @@ const ESTADOS = [
 const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#1C1C25', border:`1px solid ${C.goldB}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
-      <div style={{ color:C.t3, marginBottom:5, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
+    <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 4px 16px rgba(0,0,0,.08)' }}>
+      <div style={{ color:C.t3, marginBottom:5, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontWeight:700 }}>{label}</div>
       {payload.map((p,i)=>(
-        <div key={i} style={{ color:p.color||C.t2, fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
-          {p.name}: <span style={{ color:'#fff' }}>{typeof p.value==='number'?p.value.toLocaleString():p.value}</span>
+        <div key={i} style={{ color:p.color||C.t2, fontWeight:600, marginBottom:2 }}>
+          {p.name}: <span style={{ color:'#111827' }}>{typeof p.value==='number'?p.value.toLocaleString():p.value}</span>
         </div>
       ))}
     </div>
@@ -92,7 +92,7 @@ const Tip = ({ active, payload, label }) => {
 };
 
 function Card({ children, p=20, style={} }) {
-  return <div style={{ background:C.carbon, border:'1px solid rgba(255,255,255,.07)', borderRadius:10, padding:p, boxShadow:'0 4px 24px rgba(0,0,0,.4)', ...style }}>{children}</div>;
+  return <div style={{ background:'#fff', border:'1px solid #E5E7EB', borderRadius:10, padding:p, boxShadow:'0 1px 3px rgba(0,0,0,.06)', ...style }}>{children}</div>;
 }
 
 function Sec({ text, action }) {
