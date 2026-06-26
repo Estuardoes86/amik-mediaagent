@@ -17,7 +17,7 @@ const C = { gold:'#DCA145', goldDim:'rgba(220,161,69,.12)', goldBorder:'rgba(220
 const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#fff', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
+    <div style={{ background:'#fff', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 4px 16px rgba(0,0,0,.08)' }}>
       <div style={{ color:'#9CA3AF', marginBottom:6, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
       {payload.map((p,i) => (
         <div key={i} style={{ color:'#6B7280', fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
@@ -38,7 +38,7 @@ function Kpi({ label, value, sub, delta, deltaDir, accent, idx=0 }) {
     <div
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{
-        background: hov ? '#2E2B35' : C.carbon,
+        background: hov ? '#F3F4F6' : '#FFFFFF',
         border:`1px solid ${hov ? C.goldBorder : 'rgba(255,255,255,.07)'}`,
         borderRadius:8, padding:'18px 20px 16px', position:'relative', overflow:'hidden',
         boxShadow: hov ? `0 8px 32px rgba(0,0,0,.5), 0 0 0 1px ${C.goldDim}` : '0 4px 20px rgba(0,0,0,.4)',
@@ -67,7 +67,7 @@ function Kpi({ label, value, sub, delta, deltaDir, accent, idx=0 }) {
 function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
   const max = steps[0]?.value || 1;
   return (
-    <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, padding:22, boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
+    <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderRadius:8, padding:22, boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
         <span style={{ fontFamily:'var(--font-semi)', fontWeight:700, fontSize:14, color:'#111827' }}>{title}</span>
         <span style={{ background:`${color}22`, border:`1px solid ${color}44`, color, fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', padding:'2px 9px', borderRadius:20 }}>{badge}</span>
@@ -130,7 +130,7 @@ const SecHead = ({ label }) => (
 /* ── Platform comparison card ── */
 function PlatformCard({ title, color, rows }) {
   return (
-    <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderTop:`3px solid ${color}`, borderRadius:8, padding:20, boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
+    <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderTop:`3px solid ${color}`, borderRadius:8, padding:20, boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
       <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color, marginBottom:16 }}>{title}</div>
       {rows.map(([k,v,highlight])=>(
         <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:12.5, marginBottom:10, alignItems:'baseline', paddingBottom:9, borderBottom:'1px solid rgba(255,255,255,.04)' }}>
@@ -271,7 +271,7 @@ export default function MetricsPage() {
         <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, letterSpacing:1.5, color:'#9CA3AF', textTransform:'uppercase' }}>
           {activeClient.name}
         </span>
-        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:'#9CA3AF', background:'#F3F4F6', border:'1px solid rgba(255,255,255,.08)', padding:'3px 10px', borderRadius:20 }}>
+        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:'#9CA3AF', background:'#F3F4F6', border:'1px solid #E5E7EB', padding:'3px 10px', borderRadius:20 }}>
           📅 {dateLbl}
         </span>
         {isDemo && <span style={{ fontSize:9, color:C.gold, fontFamily:'var(--font-semi)', fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', background:C.goldDim, border:`1px solid ${C.goldBorder}`, padding:'3px 10px', borderRadius:20 }}>DEMO</span>}
@@ -366,7 +366,7 @@ export default function MetricsPage() {
           ['Campañas',     isDemo?'0':googleCampaigns.length],
         ]}/>
         {/* Pie */}
-        <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, padding:'16px 20px', boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
+        <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderRadius:8, padding:'16px 20px', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
           <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#6B7280', marginBottom:12 }}>DISTRIBUCIÓN INVERSIÓN</div>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -388,7 +388,7 @@ export default function MetricsPage() {
 
       {/* ══ RENDIMIENTO POR CAMPAÑA ══ */}
       <SecHead label="Rendimiento por campaña · Meta" />
-      <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, marginBottom:28, overflow:'hidden', boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
+      <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderRadius:8, marginBottom:28, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:4, padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)' }}>
           {chartTabs.map(t=>(
             <button key={t.k} onClick={()=>setChartTab(t.k)} style={{
@@ -418,8 +418,8 @@ export default function MetricsPage() {
       {/* ══ TENDENCIAS ══ */}
       <SecHead label="Tendencia semanal" />
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:20 }}>
-        <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, overflow:'hidden', boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
-          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#111827'2 }}>INVERSIÓN META vs GOOGLE</div>
+        <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderRadius:8, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#6B7280' }}>INVERSIÓN META vs GOOGLE</div>
           <div style={{ padding:20 }}>
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={trendData}>
@@ -437,8 +437,8 @@ export default function MetricsPage() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div style={{ background:'#FFFFFF', border:'1px solid rgba(255,255,255,.07)', borderRadius:8, overflow:'hidden', boxShadow:'0 4px 20px rgba(0,0,0,.4)' }}>
-          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#111827'2 }}>LEADS + CPL SEMANAL</div>
+        <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderRadius:8, overflow:'hidden', boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
+          <div style={{ padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,.07)', fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2px', textTransform:'uppercase', color:'#6B7280' }}>LEADS + CPL SEMANAL</div>
           <div style={{ padding:20 }}>
             <ResponsiveContainer width="100%" height={180}>
               <LineChart data={trendData}>
@@ -457,7 +457,7 @@ export default function MetricsPage() {
       </div>
 
       {isDemo && (
-        <div style={{ background:'rgba(220,161,69,.07)', border:'1px solid rgba(220,161,69,.25)', borderLeft:`3px solid ${C.gold}`, padding:'14px 18px', borderRadius:8, fontSize:13, color:'#111827'2 }}>
+        <div style={{ background:'rgba(220,161,69,.07)', border:'1px solid rgba(220,161,69,.25)', borderLeft:`3px solid ${C.gold}`, padding:'14px 18px', borderRadius:8, fontSize:13, color:'#6B7280' }}>
           <strong style={{ color:C.gold }}>Datos demo —</strong> Ve a <strong>Config → Clientes</strong> y agrega los IDs de {activeClient.name} para ver datos reales.
         </div>
       )}
