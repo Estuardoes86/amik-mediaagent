@@ -1,199 +1,219 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 
-const TABS = [
-  { path:'/inbox',     label:'INBOX'      },
-  { path:'/metrics',   label:'MÉTRICAS'   },
-  { path:'/campaigns', label:'CAMPAÑAS'   },
-  { path:'/audit',     label:'AUDIT'      },
-  { path:'/ai',        label:'IA COPILOTO'},
-  { path:'/hubspot',   label:'HUBSPOT CRM' },
-  { path:'/reports',   label:'REPORTES'   },
-  { path:'/settings',  label:'CONFIG'     },
+const CLIENTS = [
+  { id:'upsjb',  name:'UPSJB',       color:'#2563EB' },
+  { id:'deco',   name:'Deco Shalom', color:'#059669' },
+  { id:'espac',  name:'ESPAC',       color:'#7C3AED' },
+  { id:'libra',  name:'LIBRA',       color:'#DC2626' },
 ];
 
 const PRESETS = [
-  { value:'today',       label:'Hoy'         },
-  { value:'yesterday',   label:'Ayer'        },
-  { value:'last_7d',     label:'Últ. 7 días' },
-  { value:'last_14d',    label:'Últ. 14 días'},
-  { value:'last_30d',    label:'Últ. 30 días'},
-  { value:'last_60d',    label:'Últ. 60 días'},
-  { value:'this_month',  label:'Este mes'    },
-  { value:'last_month',  label:'Mes anterior'},
-  { value:'last_quarter',label:'Último trimestre'},
-  { value:'custom',      label:'Personalizado'},
+  { v:'today',       l:'Hoy'            },
+  { v:'yesterday',   l:'Ayer'           },
+  { v:'last_7d',     l:'Últimos 7 días' },
+  { v:'last_14d',    l:'Últimos 14 días'},
+  { v:'last_30d',    l:'Últimos 30 días'},
+  { v:'last_60d',    l:'Últimos 60 días'},
+  { v:'this_month',  l:'Este mes'       },
+  { v:'last_month',  l:'Mes anterior'   },
+  { v:'last_quarter',l:'Último trimestre'},
+];
+
+const NAV = [
+  {
+    label: 'Principal',
+    items: [
+      { path:'/dashboard', icon:'⊞', label:'Dashboard' },
+      { path:'/inbox',     icon:'🔔', label:'Inbox',   badge:'3' },
+    ]
+  },
+  {
+    label: 'Plataformas',
+    items: [
+      { path:'/meta',      icon:'📘', label:'Meta Ads'    },
+      { path:'/google',    icon:'🔍', label:'Google Ads'  },
+      { path:'/hubspot',   icon:'🟠', label:'HubSpot CRM' },
+    ]
+  },
+  {
+    label: 'Campañas',
+    items: [
+      { path:'/campaigns', icon:'📋', label:'Campañas'  },
+      { path:'/metrics',   icon:'📊', label:'Métricas'  },
+      { path:'/audit',     icon:'🔎', label:'Audit'     },
+    ]
+  },
+  {
+    label: 'Herramientas',
+    items: [
+      { path:'/ai',        icon:'✦',  label:'IA Copiloto' },
+      { path:'/reports',   icon:'📄', label:'Reportes'    },
+      { path:'/settings',  icon:'⚙️', label:'Config'      },
+    ]
+  },
 ];
 
 export default function Layout() {
   const { activeClient, clients, setActiveClient,
           dateMode, datePreset, setDatePreset,
-          dateRange = {since:'', until:''}, applyDateRange = ()=>{} } = useApp();
+          dateRange, applyDateRange } = useApp();
+  const location = useLocation();
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [customSince,    setCustomSince]    = useState(dateRange.since);
-  const [customUntil,    setCustomUntil]    = useState(dateRange.until);
-  const [selectedPreset, setSelectedPreset] = useState('last_30d');
-  const pickerRef = useRef(null);
+  const [showDate,    setShowDate]    = useState(false);
+  const [customSince, setCustomSince] = useState(dateRange?.since || '');
+  const [customUntil, setCustomUntil] = useState(dateRange?.until || '');
+  const dateRef = useRef(null);
 
-  // Close picker on outside click
-  useEffect(() => {
-    const handler = (e) => { if (pickerRef.current && !pickerRef.current.contains(e.target)) setShowDatePicker(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  useEffect(()=>{
+    const h = e => { if(dateRef.current && !dateRef.current.contains(e.target)) setShowDate(false); };
+    document.addEventListener('mousedown', h);
+    return ()=>document.removeEventListener('mousedown', h);
+  },[]);
 
-  const handlePresetClick = (preset) => {
-    if (preset === 'custom') return;
-    setSelectedPreset(preset);
-    setDatePreset(preset);
-    setShowDatePicker(false);
-  };
+  const dateLabel = dateMode==='range'
+    ? `${dateRange?.since} → ${dateRange?.until}`
+    : PRESETS.find(p=>p.v===datePreset)?.l || 'Últimos 30 días';
 
-  const handleApplyCustom = () => {
-    if (!customSince || !customUntil) return;
-    applyDateRange(customSince, customUntil);
-    setSelectedPreset('custom');
-    setShowDatePicker(false);
-  };
-
-  const displayLabel = () => {
-    if (dateMode === 'range') return `${dateRange.since} → ${dateRange.until}`;
-    return PRESETS.find(p => p.value === datePreset)?.label || 'Últ. 30 días';
-  };
-
-  const navStyle = {
-    display:'flex', alignItems:'center', height:52,
-    borderBottom:'1px solid rgba(255,255,255,.07)',
-    background:'linear-gradient(180deg,#1C1C25 0%,#14141B 100%)',
-    flexShrink:0, overflowX:'auto', position:'relative', zIndex:100,
-  };
+  // Page title from path
+  const pageTitle = {
+    '/dashboard':'Dashboard','/inbox':'Inbox','/meta':'Meta Ads',
+    '/google':'Google Ads','/hubspot':'HubSpot CRM','/campaigns':'Campañas',
+    '/metrics':'Métricas','/audit':'Audit','/ai':'IA Copiloto',
+    '/reports':'Reportes','/settings':'Configuración',
+  }[location.pathname] || 'AMIK MediaAgent';
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100vh', overflow:'hidden' }}>
-      <nav style={navStyle}>
+    <div className="app-shell">
 
+      {/* ── Sidebar ── */}
+      <aside className="sidebar">
         {/* Logo */}
-        <div style={{ padding:'0 22px', height:'100%', display:'flex', alignItems:'center', gap:10, borderRight:'1px solid rgba(255,255,255,.07)', flexShrink:0 }}>
-          <span style={{ fontFamily:'var(--font-cond)', fontWeight:900, fontSize:15, letterSpacing:'3px', color:'#DCA145', textTransform:'uppercase' }}>AMIK</span>
-          <div style={{ width:1, height:16, background:'rgba(255,255,255,.12)' }}/>
-          <span style={{ fontFamily:'var(--font-semi)', fontWeight:600, fontSize:8.5, letterSpacing:'2.5px', color:'#5C6470', textTransform:'uppercase' }}>MEDIA AGENT</span>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-mark">AMIK</div>
+          <div className="sidebar-logo-sub">Media Agent</div>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display:'flex', height:'100%', flex:1, overflowX:'auto' }}>
-          {TABS.map(tab => (
-            <NavLink key={tab.path} to={tab.path}
-              className={({ isActive }) => `nav-tab${isActive ? ' active' : ''}`}>
-              {tab.label}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* Right controls */}
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'0 16px', borderLeft:'1px solid rgba(255,255,255,.07)', flexShrink:0, position:'relative' }}>
-
-          {/* Date picker trigger */}
-          <div ref={pickerRef} style={{ position:'relative' }}>
-            <button
-              onClick={() => setShowDatePicker(v => !v)}
-              style={{
-                display:'flex', alignItems:'center', gap:7,
-                background: showDatePicker ? 'rgba(220,161,69,.12)' : 'rgba(255,255,255,.04)',
-                border:`1px solid ${showDatePicker ? 'rgba(220,161,69,.4)' : 'rgba(255,255,255,.1)'}`,
-                color: showDatePicker ? '#DCA145' : '#9CA3AA',
-                padding:'5px 13px', borderRadius:6, cursor:'pointer',
-                fontFamily:'var(--font-semi)', fontSize:10.5, fontWeight:700,
-                letterSpacing:.8, whiteSpace:'nowrap', transition:'all .15s',
-              }}
-            >
-              <span style={{ fontSize:11 }}>📅</span>
-              {displayLabel()}
-              <span style={{ fontSize:8, opacity:.6 }}>▼</span>
-            </button>
-
-            {/* Dropdown */}
-            {showDatePicker && (
-              <div style={{
-                position:'absolute', top:'calc(100% + 8px)', right:0, zIndex:999,
-                background:'#1C1C25', border:'1px solid rgba(220,161,69,.25)',
-                borderRadius:10, boxShadow:'0 16px 48px rgba(0,0,0,.7)',
-                minWidth:260, overflow:'hidden',
-              }}>
-                {/* Presets */}
-                <div style={{ padding:'8px 0' }}>
-                  {PRESETS.filter(p => p.value !== 'custom').map(p => (
-                    <button key={p.value} onClick={() => handlePresetClick(p.value)}
-                      style={{
-                        display:'block', width:'100%', textAlign:'left',
-                        padding:'9px 18px', background: selectedPreset===p.value ? 'rgba(220,161,69,.12)' : 'transparent',
-                        border:'none', color: selectedPreset===p.value ? '#DCA145' : '#9CA3AA',
-                        fontFamily:'var(--font-semi)', fontSize:12, fontWeight:600,
-                        cursor:'pointer', transition:'all .12s', letterSpacing:.3,
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,.05)'; e.currentTarget.style.color='#F0EDE8'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background=selectedPreset===p.value?'rgba(220,161,69,.12)':'transparent'; e.currentTarget.style.color=selectedPreset===p.value?'#DCA145':'#9CA3AA'; }}
-                    >
-                      {selectedPreset === p.value && <span style={{ marginRight:8 }}>✓</span>}{p.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Custom range */}
-                <div style={{ borderTop:'1px solid rgba(255,255,255,.07)', padding:'14px 16px 16px' }}>
-                  <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'#5C6470', marginBottom:10 }}>
-                    Rango personalizado
-                  </div>
-                  <div style={{ display:'flex', gap:8, marginBottom:10 }}>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:10, color:'#5C6470', marginBottom:4, fontFamily:'var(--font-semi)', fontWeight:600 }}>DESDE</div>
-                      <input type="date" value={customSince} onChange={e => setCustomSince(e.target.value)}
-                        style={{ width:'100%', padding:'6px 8px', fontSize:12, background:'#262630', border:'1px solid rgba(255,255,255,.1)', color:'#F0EDE8', borderRadius:6 }}/>
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:10, color:'#5C6470', marginBottom:4, fontFamily:'var(--font-semi)', fontWeight:600 }}>HASTA</div>
-                      <input type="date" value={customUntil} onChange={e => setCustomUntil(e.target.value)}
-                        style={{ width:'100%', padding:'6px 8px', fontSize:12, background:'#262630', border:'1px solid rgba(255,255,255,.1)', color:'#F0EDE8', borderRadius:6 }}/>
-                    </div>
-                  </div>
-                  <button onClick={handleApplyCustom}
-                    style={{
-                      width:'100%', padding:'8px', background:'linear-gradient(135deg,#DCA145,#B8832E)',
-                      border:'none', borderRadius:6, color:'#14141B', fontFamily:'var(--font-semi)',
-                      fontSize:11, fontWeight:800, letterSpacing:1.5, textTransform:'uppercase',
-                      cursor:'pointer', transition:'opacity .15s',
-                    }}
-                    onMouseEnter={e=>e.currentTarget.style.opacity='.85'}
-                    onMouseLeave={e=>e.currentTarget.style.opacity='1'}
-                  >
-                    Aplicar rango
-                  </button>
-                </div>
-              </div>
-            )}
+        {/* Client selector */}
+        <div style={{ padding:'12px', borderBottom:'1px solid var(--sidebar-border)' }}>
+          <div style={{ fontSize:9.5, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', color:'var(--sidebar-text)', marginBottom:8, paddingLeft:4 }}>
+            Cliente activo
           </div>
-
-          {/* Client selector */}
-          <select value={activeClient.id} onChange={e => setActiveClient(e.target.value)}
+          <select
+            value={activeClient?.id || ''}
+            onChange={e => setActiveClient(e.target.value)}
             style={{
-              padding:'5px 10px', fontSize:10.5, fontFamily:'var(--font-semi)', fontWeight:700,
-              letterSpacing:.8, textTransform:'uppercase', borderRadius:6, width:'auto',
-              color:'#DCA145', borderColor:'rgba(220,161,69,.3)', background:'rgba(220,161,69,.06)',
-            }}>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)',
+              color:'#fff', fontSize:12, fontWeight:600, borderRadius:6, padding:'6px 10px',
+            }}
+          >
+            {(clients || CLIENTS).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+        </div>
 
-          {/* Live dot */}
-          <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
-            <span className="pulse-dot"/>
-            <span style={{ fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:2.5, color:'#2DD4A0', textTransform:'uppercase' }}>LIVE</span>
+        {/* Nav sections */}
+        {NAV.map(section=>(
+          <div key={section.label} className="sidebar-section">
+            <div className="sidebar-label">{section.label}</div>
+            {section.items.map(item=>(
+              <NavLink key={item.path} to={item.path}
+                className={({isActive})=>`nav-item${isActive?' active':''}`}>
+                <span className="nav-icon">{item.icon}</span>
+                <span>{item.label}</span>
+                {item.badge && <span className="nav-badge">{item.badge}</span>}
+              </NavLink>
+            ))}
+          </div>
+        ))}
+
+        {/* Bottom */}
+        <div style={{ marginTop:'auto', padding:'12px', borderTop:'1px solid var(--sidebar-border)' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+            <span className="live-dot"/>
+            <span style={{ fontSize:10.5, fontWeight:600, color:'var(--sidebar-text2)', letterSpacing:0.5 }}>
+              Conectado · LIVE
+            </span>
+          </div>
+          <div style={{ fontSize:10, color:'var(--sidebar-text)', marginTop:6 }}>
+            AMIK MediaAgent v1.1
           </div>
         </div>
-      </nav>
+      </aside>
 
-      <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-        <Outlet />
+      {/* ── Main ── */}
+      <div className="main-content">
+
+        {/* Topbar */}
+        <div className="topbar">
+          <div>
+            <div className="topbar-title">{pageTitle}</div>
+          </div>
+
+          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:8 }}>
+            {/* Date picker */}
+            <div ref={dateRef} style={{ position:'relative' }}>
+              <button onClick={()=>setShowDate(v=>!v)} className="btn btn-ghost btn-sm"
+                style={{ borderColor: showDate ? 'var(--gold)' : undefined, color: showDate ? 'var(--gold)' : undefined }}>
+                📅 {dateLabel}
+                <span style={{ fontSize:9, opacity:.5 }}>▼</span>
+              </button>
+
+              {showDate && (
+                <div style={{
+                  position:'absolute', top:'calc(100% + 6px)', right:0, zIndex:999,
+                  background:'var(--bg2)', border:'1px solid var(--border)',
+                  borderRadius:'var(--radius-md)', boxShadow:'var(--shadow-lg)',
+                  minWidth:240, overflow:'hidden',
+                }}>
+                  <div style={{ padding:'8px 0', borderBottom:'1px solid var(--border)' }}>
+                    {PRESETS.map(p=>(
+                      <button key={p.v} onClick={()=>{ setDatePreset(p.v); setShowDate(false); }}
+                        style={{
+                          display:'block', width:'100%', textAlign:'left',
+                          padding:'8px 16px', fontSize:13, fontWeight: datePreset===p.v?600:400,
+                          background:datePreset===p.v?'var(--gold-dim)':'transparent',
+                          color:datePreset===p.v?'var(--gold-dark)':'var(--text2)',
+                          border:'none', cursor:'pointer',
+                        }}
+                        onMouseEnter={e=>e.currentTarget.style.background='var(--bg3)'}
+                        onMouseLeave={e=>e.currentTarget.style.background=datePreset===p.v?'var(--gold-dim)':'transparent'}
+                      >
+                        {datePreset===p.v&&'✓ '}{p.l}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ padding:'12px 16px' }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'var(--text3)', marginBottom:10, textTransform:'uppercase', letterSpacing:1 }}>
+                      Rango personalizado
+                    </div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:10 }}>
+                      <div>
+                        <div style={{ fontSize:11, color:'var(--text3)', marginBottom:4 }}>Desde</div>
+                        <input type="date" value={customSince} onChange={e=>setCustomSince(e.target.value)} style={{ fontSize:12 }}/>
+                      </div>
+                      <div>
+                        <div style={{ fontSize:11, color:'var(--text3)', marginBottom:4 }}>Hasta</div>
+                        <input type="date" value={customUntil} onChange={e=>setCustomUntil(e.target.value)} style={{ fontSize:12 }}/>
+                      </div>
+                    </div>
+                    <button className="btn btn-primary" style={{ width:'100%', justifyContent:'center' }}
+                      onClick={()=>{ applyDateRange?.(customSince,customUntil); setShowDate(false); }}>
+                      Aplicar rango
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button className="btn btn-ghost btn-sm">↻ Actualizar</button>
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div style={{ flex:1, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+          <Outlet/>
+        </div>
       </div>
     </div>
   );
