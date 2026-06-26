@@ -73,7 +73,7 @@ function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
         <span style={{ background:`${color}22`, border:`1px solid ${color}44`, color, fontFamily:'var(--font-semi)', fontSize:9, fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', padding:'2px 9px', borderRadius:20 }}>{badge}</span>
       </div>
       {/* Mini stats */}
-      <div style={{ display:'flex', gap:20, marginBottom:20, paddingBottom:14, borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+      <div style={{ display:'flex', gap:20, marginBottom:20, paddingBottom:14, borderBottom:'1px solid #F3F4F6' }}>
         {[
           ['Inversión', `S/ ${parseInt(spend||0).toLocaleString()}`],
           ['Conv./Leads', parseInt(conv||0).toLocaleString()],
@@ -103,13 +103,13 @@ function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
                 width:`${pct}%`, height:'100%', borderRadius:5,
                 background:`linear-gradient(90deg,${color}99,${color})`,
                 display:'flex', alignItems:'center', paddingLeft:12,
-                fontFamily:'var(--font-semi)', fontWeight:600, fontSize:10.5, color:'rgba(255,255,255,.9)',
+                fontFamily:'var(--font-semi)', fontWeight:600, fontSize:10.5, color:'#fff',
                 transition:'width .8s cubic-bezier(.16,1,.3,1)',
               }}>
                 {s.note||''}
               </div>
             </div>
-            {i<steps.length-1 && <div style={{ marginLeft:14, height:8, borderLeft:`1px dashed rgba(255,255,255,.1)` }}/>}
+            {i<steps.length-1 && <div style={{ marginLeft:14, height:8, borderLeft:'1px dashed #E5E7EB' }}/>}
           </div>
         );
       })}
@@ -133,9 +133,9 @@ function PlatformCard({ title, color, rows }) {
     <div style={{ background:'#FFFFFF', border:'1px solid #E5E7EB', borderTop:`3px solid ${color}`, borderRadius:8, padding:20, boxShadow:'0 1px 3px rgba(0,0,0,.06)' }}>
       <div style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color, marginBottom:16 }}>{title}</div>
       {rows.map(([k,v,highlight])=>(
-        <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:12.5, marginBottom:10, alignItems:'baseline', paddingBottom:9, borderBottom:'1px solid rgba(255,255,255,.04)' }}>
+        <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:12.5, marginBottom:10, alignItems:'baseline', paddingBottom:9, borderBottom:'1px solid #F3F4F6' }}>
           <span style={{ color:'#9CA3AF', fontFamily:'var(--font-semi)', fontWeight:600 }}>{k}</span>
-          <span style={{ fontWeight:700, color: highlight ? color : '#fff', fontFamily:'var(--font-semi)', fontSize:13 }}>{v}</span>
+          <span style={{ fontWeight:700, color: highlight ? color : '#111827', fontFamily:'var(--font-semi)', fontSize:13 }}>{v}</span>
         </div>
       ))}
     </div>
