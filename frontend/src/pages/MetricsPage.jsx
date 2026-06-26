@@ -38,19 +38,19 @@ function Kpi({ label, value, sub, delta, deltaDir, accent, idx=0 }) {
     <div
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{
-        background: hov ? '#F3F4F6' : '#FFFFFF',
-        border:`1px solid ${hov ? C.goldBorder : 'rgba(255,255,255,.07)'}`,
+        background:'#FFFFFF',
+        border:`1px solid ${hov ? C.goldBorder : '#E5E7EB'}`,
         borderRadius:8, padding:'18px 20px 16px', position:'relative', overflow:'hidden',
-        boxShadow: hov ? `0 8px 32px rgba(0,0,0,.5), 0 0 0 1px ${C.goldDim}` : '0 4px 20px rgba(0,0,0,.4)',
+        boxShadow: hov ? `0 4px 12px rgba(0,0,0,.1), 0 0 0 1px ${C.goldDim}` : '0 1px 3px rgba(0,0,0,.06)',
         animation:`kpi-rise .45s ${idx*.05}s both`, transition:'background .15s, border .15s, box-shadow .2s, transform .2s',
         transform: hov ? 'translateY(-3px)' : 'none', cursor:'default',
       }}
     >
       <div style={{ position:'absolute', left:0, top:0, bottom:0, width:3, background:accentMap[accent]||'rgba(255,255,255,.1)', borderRadius:'8px 0 0 8px' }}/>
-      <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color: hov ? C.text2 : C.text3, marginBottom:10, transition:'color .15s' }}>
+      <div style={{ fontFamily:'var(--font-semi)', fontSize:9.5, fontWeight:700, letterSpacing:'2.5px', textTransform:'uppercase', color:'#9CA3AF', marginBottom:10, transition:'color .15s' }}>
         {label}
       </div>
-      <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:36, lineHeight:1, letterSpacing:.5, color: hov ? '#fff' : (valMap[accent]||C.text), transition:'color .15s' }}>
+      <div style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:36, lineHeight:1, letterSpacing:.5, color: valMap[accent]||'#111827', transition:'color .15s' }}>
         {value ?? '—'}
       </div>
       {delta && (
@@ -58,7 +58,7 @@ function Kpi({ label, value, sub, delta, deltaDir, accent, idx=0 }) {
           {deltaDir==='up'?'▲':'▼'} {delta}
         </div>
       )}
-      {sub && <div style={{ fontSize:11.5, color: hov ? C.text2 : C.text3, marginTop:6, lineHeight:1.4, transition:'color .15s' }} dangerouslySetInnerHTML={{ __html:sub }}/>}
+      {sub && <div style={{ fontSize:11.5, color:'#6B7280', marginTop:6, lineHeight:1.4, transition:'color .15s' }} dangerouslySetInnerHTML={{ __html:sub }}/>}
     </div>
   );
 }
