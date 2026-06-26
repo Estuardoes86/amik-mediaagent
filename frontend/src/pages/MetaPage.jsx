@@ -526,13 +526,13 @@ export default function MetaPage() {
             <div className="card-head"><div className="card-title">CPL por programa · menor es mejor</div></div>
             <div className="card-body">
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={byPrograma.filter(p=>p.leads>0).sort((a,b)=>parseFloat(a.cpl||999)-parseFloat(b.cpl||999))} layout="vertical" barSize={18}>
+                <BarChart data={byPrograma.filter(p=>p.cplForm).sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999))} layout="vertical" barSize={18}>
                   <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`}/>
                   <YAxis type="category" dataKey="prog" tick={{ fontSize:10, fill:'var(--text2)' }} axisLine={false} tickLine={false} width={120}/>
                   <Tooltip content={<Tip/>}/>
-                  <Bar dataKey="cpl" name="CPL S/" radius={[0,4,4,0]}>
-                    {byPrograma.filter(p=>p.leads>0).sort((a,b)=>parseFloat(a.cpl||999)-parseFloat(b.cpl||999)).map((p,i)=>(
-                      <Cell key={i} fill={parseFloat(p.cpl)<35?'var(--green)':parseFloat(p.cpl)<55?'var(--gold)':'var(--red)'}/>
+                  <Bar dataKey="cplForm" name="CPL Form. S/" radius={[0,4,4,0]}>
+                    {byPrograma.filter(p=>p.cplForm).sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999)).map((p,i)=>(
+                      <Cell key={i} fill={parseFloat(p.cplForm)<35?'var(--green)':parseFloat(p.cplForm)<55?'var(--gold)':'var(--red)'}/>
                     ))}
                   </Bar>
                 </BarChart>
@@ -543,11 +543,12 @@ export default function MetaPage() {
             <div className="card-head"><div className="card-title">Leads por programa</div></div>
             <div className="card-body">
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={byPrograma.sort((a,b)=>b.leads-a.leads)} layout="vertical" barSize={18}>
+                <BarChart data={[...byPrograma].sort((a,b)=>b.totalLeads-a.totalLeads)} layout="vertical" barSize={18}>
                   <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false}/>
                   <YAxis type="category" dataKey="prog" tick={{ fontSize:10, fill:'var(--text2)' }} axisLine={false} tickLine={false} width={120}/>
                   <Tooltip content={<Tip/>}/>
-                  <Bar dataKey="leads" name="Leads" fill="#1877F2" opacity={.85} radius={[0,4,4,0]}/>
+                  <Bar dataKey="leadsForm" name="Lead Ads" fill="#1877F2" opacity={.85} radius={[0,0,0,0]} stackId="a"/>
+                  <Bar dataKey="leadsWA"   name="WhatsApp"  fill="#25D366" opacity={.85} radius={[0,4,4,0]} stackId="a"/>
                 </BarChart>
               </ResponsiveContainer>
             </div>
