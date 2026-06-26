@@ -1,63 +1,53 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
 const AppContext = createContext(null);
 
-// Default client configurations
 const DEFAULT_CLIENTS = [
-  {
-    id: 'upsjb',
-    name: 'UPSJB',
-    fullName: 'Universidad Privada San Juan Bautista',
-    metaAccountId: import.meta.env.VITE_UPSJB_META_ID || '',
-    googleCustomerId: import.meta.env.VITE_UPSJB_GOOGLE_ID || '',
-    currency: 'PEN',
-    color: '#4a9eff'
-  },
-  {
-    id: 'deco',
-    name: 'Deco Shalom',
-    fullName: 'Deco Shalom Mueblería',
-    metaAccountId: import.meta.env.VITE_DECO_META_ID || '',
-    googleCustomerId: import.meta.env.VITE_DECO_GOOGLE_ID || '',
-    currency: 'PEN',
-    color: '#f5c842'
-  },
-  {
-    id: 'espac',
-    name: 'ESPAC',
-    fullName: 'Escuela de Pilotos de Aviación Civil',
-    metaAccountId: import.meta.env.VITE_ESPAC_META_ID || '',
-    googleCustomerId: import.meta.env.VITE_ESPAC_GOOGLE_ID || '',
-    currency: 'PEN',
-    color: '#00c97a'
-  },
-  {
-    id: 'libra',
-    name: 'LIBRA',
-    fullName: 'LIBRA — Apoyo Trastornos Alimentarios',
-    metaAccountId: import.meta.env.VITE_LIBRA_META_ID || '',
-    googleCustomerId: import.meta.env.VITE_LIBRA_GOOGLE_ID || '',
-    currency: 'PEN',
-    color: '#c084fc'
-  }
+  { id:'upsjb',  name:'UPSJB',       fullName:'Universidad Privada San Juan Bautista', metaAccountId: import.meta.env.VITE_UPSJB_META_ID||'',  googleCustomerId: import.meta.env.VITE_UPSJB_GOOGLE_ID||'',  currency:'PEN', color:'#2563EB' },
+  { id:'deco',   name:'Deco Shalom', fullName:'Deco Shalom Mueblería',                 metaAccountId: import.meta.env.VITE_DECO_META_ID||'',   googleCustomerId: import.meta.env.VITE_DECO_GOOGLE_ID||'',   currency:'PEN', color:'#059669' },
+  { id:'espac',  name:'ESPAC',       fullName:'Escuela de Pilotos de Aviación Civil',  metaAccountId: import.meta.env.VITE_ESPAC_META_ID||'',  googleCustomerId: import.meta.env.VITE_ESPAC_GOOGLE_ID||'',  currency:'PEN', color:'#7C3AED' },
+  { id:'libra',  name:'LIBRA',       fullName:'LIBRA — Apoyo Trastornos Alimentarios', metaAccountId: import.meta.env.VITE_LIBRA_META_ID||'',  googleCustomerId: import.meta.env.VITE_LIBRA_GOOGLE_ID||'',  currency:'PEN', color:'#DC2626' },
 ];
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function daysAgoStr(n) { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
 
 export function AppProvider({ children }) {
   const [activeClient, setActiveClientState] = useState(DEFAULT_CLIENTS[0]);
-  const [clients, setClients] = useState(DEFAULT_CLIENTS);
-  const [toasts, setToasts] = useState([]);
-  const [datePreset, setDatePreset] = useState('last_30d');
+  const [clients,      setClients]           = useState(DEFAULT_CLIENTS);
+  const [toasts,       setToasts]            = useState([]);
+
+  // Date state — all in one object so changes are always detected
+  const [dateState, setDateState] = useState({
+    mode:   'preset',      // 'preset' | 'range'
+    preset: 'last_30d',
+    since:  daysAgoStr(29),
+    until:  todayStr(),
+  });
+
+  const setDatePreset = useCallback((preset) => {
+    setDateState({ mode:'preset', preset, since:daysAgoStr(29), until:todayStr() });
+  }, []);
+
+  const applyDateRange = useCallback((since, until) => {
+    if(!since || !until) return;
+    setDateState({ mode:'range', preset:'custom', since, until });
+  }, []);
+
+  // Computed dateParams — changes whenever dateState changes
+  const dateParams = useMemo(() => {
+    if (dateState.mode === 'range') {
+      return { since: dateState.since, until: dateState.until };
+    }
+    return { datePreset: dateState.preset };
+  }, [dateState]);
 
   const setActiveClient = useCallback((clientId) => {
     const client = clients.find(c => c.id === clientId);
     if (client) setActiveClientState(client);
   }, [clients]);
 
-  const addClient = useCallback((client) => {
-    setClients(prev => [...prev, { ...client, id: client.name.toLowerCase().replace(/\s+/g, '_') }]);
-  }, []);
-
-  const showToast = useCallback((message, type = 'info') => {
+  const showToast = useCallback((message, type='info') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
@@ -65,14 +55,18 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      activeClient,
-      setActiveClient,
-      clients,
-      addClient,
-      toasts,
-      showToast,
-      datePreset,
-      setDatePreset
+      // Clients
+      activeClient, setActiveClient, clients,
+      // Date
+      dateMode:    dateState.mode,
+      datePreset:  dateState.preset,
+      dateRange:   { since: dateState.since, until: dateState.until },
+      setDatePreset,
+      applyDateRange,
+      setDateRange: applyDateRange,
+      dateParams,
+      // Toast
+      toasts, showToast,
     }}>
       {children}
     </AppContext.Provider>
