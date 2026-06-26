@@ -12,31 +12,27 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// Safe spread — ensures dateParams is always an object
+const safeDate = (dp) => (dp && typeof dp === 'object') ? dp : { datePreset: 'last_30d' };
+
 export const metaApi = {
-  getAccounts: () => api.get('/meta/accounts'),
-  getCampaigns: (accountId, dateParams = {}) =>
-    api.get('/meta/campaigns', { params: { accountId, ...dateParams } }),
-  getInsights: (accountId, dateParams = {}) =>
-    api.get('/meta/insights', { params: { accountId, ...dateParams } }),
-  getAdSets: (accountId, dateParams = {}) =>
-    api.get('/meta/adsets', { params: { accountId, ...dateParams } }),
-  getDaily: (accountId, dateParams = {}) =>
-    api.get('/meta/daily', { params: { accountId, ...dateParams } }),
+  getAccounts:  ()                      => api.get('/meta/accounts'),
+  getCampaigns: (accountId, dp)         => api.get('/meta/campaigns', { params: { accountId, ...safeDate(dp) } }),
+  getInsights:  (accountId, dp)         => api.get('/meta/insights',  { params: { accountId, ...safeDate(dp) } }),
+  getAdSets:    (accountId, dp)         => api.get('/meta/adsets',    { params: { accountId, ...safeDate(dp) } }),
+  getDaily:     (accountId, dp)         => api.get('/meta/daily',     { params: { accountId, ...safeDate(dp) } }),
 };
 
 export const googleApi = {
-  getCustomers: () => api.get('/google/customers'),
-  getCampaigns: (customerId, dateRange = 'LAST_30_DAYS') =>
-    api.get('/google/campaigns', { params: { customerId, dateRange } }),
-  getKeywords: (customerId) =>
-    api.get('/google/keywords', { params: { customerId } }),
-  getFull: (customerId, dateRange = 'LAST_30_DAYS') =>
-    api.get('/google/full', { params: { customerId, dateRange } })
+  getCustomers: ()                           => api.get('/google/customers'),
+  getCampaigns: (customerId, dateRange)      => api.get('/google/campaigns', { params: { customerId, dateRange: dateRange||'LAST_30_DAYS' } }),
+  getKeywords:  (customerId)                 => api.get('/google/keywords',  { params: { customerId } }),
+  getFull:      (customerId, dateRange)      => api.get('/google/full',      { params: { customerId, dateRange: dateRange||'LAST_30_DAYS' } }),
 };
 
 export const aiApi = {
-  chat:      (messages, clientContext) => api.post('/ai/chat', { messages, clientContext }),
-  analyze:   (data, analysisType, clientName) => api.post('/ai/analyze', { data, analysisType, clientName }),
+  chat:      (messages, clientContext)           => api.post('/ai/chat',    { messages, clientContext }),
+  analyze:   (data, analysisType, clientName)    => api.post('/ai/analyze', { data, analysisType, clientName }),
   streamUrl: '/api/ai/stream'
 };
 
@@ -50,12 +46,12 @@ export const reportsApi = {
   list:     ()        => api.get('/reports/list')
 };
 
-export default api;
-
 export const hubspotApi = {
-  getSummary:  (pipelineId, daysBack = 30) => api.get('/hubspot/summary',   { params:{ pipelineId, daysBack } }),
-  getPipelines:()                           => api.get('/hubspot/pipelines'),
-  getFunnel:   (pipelineId)                => api.get('/hubspot/funnel',     { params:{ pipelineId } }),
-  getContacts: (daysBack = 30)             => api.get('/hubspot/contacts',   { params:{ daysBack } }),
-  getRecent:   ()                           => api.get('/hubspot/recent'),
+  getSummary:   (pipelineId, daysBack=30) => api.get('/hubspot/summary',   { params:{ pipelineId, daysBack } }),
+  getPipelines: ()                         => api.get('/hubspot/pipelines'),
+  getFunnel:    (pipelineId)               => api.get('/hubspot/funnel',    { params:{ pipelineId } }),
+  getContacts:  (daysBack=30)              => api.get('/hubspot/contacts',  { params:{ daysBack } }),
+  getRecent:    ()                         => api.get('/hubspot/recent'),
 };
+
+export default api;
