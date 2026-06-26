@@ -472,12 +472,12 @@ export default function MetaPage() {
               </thead>
               <tbody>
                 {filteredCamps.map(c=>{
-                  const leads   = getLeads(c);
+                  const wa      = isWACamp(c);
+                  const waConv  = getWA(c);
+                  const leads   = wa ? waConv : getLeads(c);
                   const spend   = getSpend(c);
                   const cpl     = leads>0?(spend/leads).toFixed(2):null;
                   const cplCl   = !cpl?'':parseFloat(cpl)<35?'cpl-good':parseFloat(cpl)<60?'cpl-mid':'cpl-high';
-                  const wa      = isWACamp(c);
-                  const waConv  = getWA(c);
                   return (
                     <tr key={c.id}>
                       <td style={{ maxWidth:260 }}>
