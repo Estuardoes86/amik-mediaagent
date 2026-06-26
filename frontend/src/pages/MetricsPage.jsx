@@ -17,7 +17,7 @@ const C = { gold:'#DCA145', goldDim:'rgba(220,161,69,.12)', goldBorder:'rgba(220
 const Tip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#1C1C25', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
+    <div style={{ background:'#fff', border:`1px solid ${C.goldBorder}`, borderLeft:`3px solid ${C.gold}`, padding:'10px 16px', borderRadius:8, fontSize:12, boxShadow:'0 8px 32px rgba(0,0,0,.6)' }}>
       <div style={{ color:C.text3, marginBottom:6, fontSize:10, letterSpacing:1, textTransform:'uppercase', fontFamily:'var(--font-semi)', fontWeight:700 }}>{label}</div>
       {payload.map((p,i) => (
         <div key={i} style={{ color:C.text2, fontFamily:'var(--font-semi)', fontWeight:600, marginBottom:2 }}>
@@ -98,7 +98,7 @@ function Funnel({ title, badge, color, steps, cpl, spend, conv }) {
                 <span style={{ fontFamily:'var(--font-cond)', fontWeight:800, fontSize:16, color:'#fff' }}>{s.value.toLocaleString()}</span>
               </span>
             </div>
-            <div style={{ background:'rgba(255,255,255,.05)', borderRadius:5, height:38, overflow:'hidden' }}>
+            <div style={{ background:'#F3F4F6', borderRadius:5, height:38, overflow:'hidden' }}>
               <div style={{
                 width:`${pct}%`, height:'100%', borderRadius:5,
                 background:`linear-gradient(90deg,${color}99,${color})`,
@@ -261,7 +261,7 @@ export default function MetricsPage() {
     : PRESETS_MAP[datePreset] || 'Últ. 30 días';
 
   return (
-    <div className="scroll-y" style={{ flex:1, padding:'24px 28px', background:'#14141B' }}>
+    <div className="scroll-y" style={{ flex:1, padding:'24px 28px', background:'#F8F9FA' }}>
 
       {/* ── Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:26 }}>
@@ -271,7 +271,7 @@ export default function MetricsPage() {
         <span style={{ fontFamily:'var(--font-semi)', fontSize:11, fontWeight:600, letterSpacing:1.5, color:C.text3, textTransform:'uppercase' }}>
           {activeClient.name}
         </span>
-        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:C.text3, background:'rgba(255,255,255,.05)', border:'1px solid rgba(255,255,255,.08)', padding:'3px 10px', borderRadius:20 }}>
+        <span style={{ fontFamily:'var(--font-semi)', fontSize:10, fontWeight:600, color:C.text3, background:'#F3F4F6', border:'1px solid rgba(255,255,255,.08)', padding:'3px 10px', borderRadius:20 }}>
           📅 {dateLbl}
         </span>
         {isDemo && <span style={{ fontSize:9, color:C.gold, fontFamily:'var(--font-semi)', fontWeight:700, letterSpacing:1.5, textTransform:'uppercase', background:C.goldDim, border:`1px solid ${C.goldBorder}`, padding:'3px 10px', borderRadius:20 }}>DEMO</span>}
@@ -379,7 +379,7 @@ export default function MetricsPage() {
                 <Cell fill={C.green}/><Cell fill={C.gold}/><Cell fill={C.blue}/>
               </Pie>
               <Tooltip formatter={v=>`S/ ${parseInt(v).toLocaleString()}`}
-                contentStyle={{ background:'#1C1C25', border:`1px solid ${C.goldBorder}`, fontSize:12, borderRadius:8 }}/>
+                contentStyle={{ background:'#fff', border:`1px solid ${C.goldBorder}`, fontSize:12, borderRadius:8 }}/>
               <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontFamily:'var(--font-semi)', fontSize:10.5, paddingTop:10 }}/>
             </PieChart>
           </ResponsiveContainer>
