@@ -398,7 +398,7 @@ export default function MetricsPage() {
               borderRadius:'4px 4px 0 0', transition:'all .15s',
             }}>{t.l}</button>
           ))}
-          <span style={{ marginLeft:'auto', fontFamily:'var(--font-semi)', fontSize:10, color:'#111827'3 }}>
+          <span style={{ marginLeft:'auto', fontFamily:'var(--font-semi)', fontSize:10, color:'#9CA3AF' }}>
             {isDemo?'8 campañas demo':`${metaCampaigns.length} campañas`}
           </span>
         </div>
