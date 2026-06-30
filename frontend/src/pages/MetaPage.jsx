@@ -68,7 +68,9 @@ export default function MetaPage() {
   const [chartM,  setChartM] = useState('spend');
 
   /* ── Aggregate from real campaigns ── */
-  const totalSpend = campaigns.reduce((s,c)=>s+getSpend(c), parseFloat(summary.spend||0));
+  const totalSpend = campaigns.length > 0
+    ? campaigns.reduce((s,c)=>s+getSpend(c), 0)
+    : parseFloat(summary.spend||0);
   const totalLeads = campaigns.length > 0
     ? campaigns.reduce((s,c)=>s+getLeads(c),0)
     : i(summary.leads||0);
