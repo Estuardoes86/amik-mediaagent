@@ -22,7 +22,7 @@ const getWA = c => {
   return (m.actions||[]).reduce((s,a)=>a.action_type==='onsite_conversion.total_messaging_connection'?s+i(a.value):s, 0);
 };
 const getSpend  = c => parseFloat((c.metrics||c).spend||0);
-const getClics  = c => { const m=c.metrics||c; return i(m.inline_link_clicks ?? m.clicks||0); };
+const getClics  = c => { const m=c.metrics||c; return i(m.inline_link_clicks ?? (m.clicks||0)); };
 const getImpr   = c => i((c.metrics||c).impressions||0);
 const getReach  = c => i((c.metrics||c).reach||0);
 const getCtr    = c => parseFloat((c.metrics||c).ctr||0);
