@@ -28,7 +28,8 @@ const getReach  = c => i((c.metrics||c).reach||0);
 const getCtr    = c => parseFloat((c.metrics||c).ctr||0);
 const getCpm    = c => parseFloat((c.metrics||c).cpm||0);
 const getFreq   = c => { const m=c.metrics||c; const r=i(m.reach||0),imp=i(m.impressions||0); return r>0?imp/r:0; };
-const isWACamp  = c => (c.name||'').toUpperCase().includes('WHATSAPP') || (c.name||'').toUpperCase().match(/\bWA[_\b]/);
+const isWACamp  = c => (c.name||'').toUpperCase().includes('WHATSAPP');
+const isFormCamp = c => (c.name||'').toUpperCase().includes('FORM');
 
 /* ── Tooltip ── */
 const Tip = ({ active, payload, label }) => {
@@ -99,7 +100,7 @@ export default function MetaPage() {
   const convRate = totalClics>0&&totalLeads>0 ? ((totalLeads/totalClics)*100).toFixed(2) : '—';
 
   /* ── Segment Lead Ads vs WhatsApp ── */
-  const leadCamps = campaigns.filter(c=>!isWACamp(c));
+  const leadCamps = campaigns.filter(c=>isFormCamp(c));
   const waCamps   = campaigns.filter(c=> isWACamp(c));
   const leadSpend = leadCamps.reduce((s,c)=>s+getSpend(c),0);
   const waSpend   = waCamps.reduce((s,c)=>s+getSpend(c),0);
@@ -139,7 +140,7 @@ export default function MetaPage() {
     for (const c of campaigns) {
       const { carrera, isWA: campIsWA } = extractPrograma(c);
       if (!map[carrera]) map[carrera]={ prog:carrera, leadsForm:0, spendForm:0, leadsWA:0, spendWA:0 };
-      if (campIsWA || isWACamp(c)) {
+      if (isWACamp(c)) {
         map[carrera].leadsWA  += getWA(c)||0;
         map[carrera].spendWA  += getSpend(c);
       } else {
@@ -162,7 +163,7 @@ export default function MetaPage() {
     let rows=[...campaigns];
     if(statusF==='active') rows=rows.filter(c=>c.status==='ACTIVE');
     if(statusF==='paused') rows=rows.filter(c=>c.status!=='ACTIVE');
-    if(typeF==='lead') rows=rows.filter(c=>!isWACamp(c));
+    if(typeF==='lead') rows=rows.filter(c=>isFormCamp(c));
     if(typeF==='wa')   rows=rows.filter(c=> isWACamp(c));
     if(search) rows=rows.filter(c=>c.name?.toLowerCase().includes(search.toLowerCase()));
     rows.sort((a,b)=>{
