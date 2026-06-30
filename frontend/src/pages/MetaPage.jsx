@@ -244,9 +244,9 @@ export default function MetaPage() {
           <div className="kpi-sub">CPL: S/ {cplLeads}</div>
         </div>
         <div className="kpi-card">
-          <div className="kpi-label">WhatsApp (CTWA)</div>
+          <div className="kpi-label">Conversaciones Iniciadas WA</div>
           <div className="kpi-value">{fmt(totalWA)}</div>
-          <div className="kpi-sub">CPL WA: S/ {cplWA}</div>
+          <div className="kpi-sub">Costo por conv. iniciada: S/ {cplWA}</div>
         </div>
         <div className="kpi-card gold">
           <div className="kpi-label">CPL Total</div>
