@@ -28,6 +28,7 @@ authRouter.post('/google', async (req, res) => {
     const { credential } = req.body;
     if (!credential) return res.status(400).json({ error: 'Token requerido' });
 
+    console.log('[Auth] Verifying token with client ID:', process.env.GOOGLE_OAUTH_CLIENT_ID?.slice(0,20));
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_OAUTH_CLIENT_ID,
@@ -51,8 +52,8 @@ authRouter.post('/google', async (req, res) => {
 
     res.json({ token, user });
   } catch (err) {
-    console.error('[Auth] Google error:', err.message);
-    res.status(401).json({ error: 'Token de Google inválido' });
+    console.error('[Auth] Google error full:', err);
+    res.status(401).json({ error: 'Token de Google inválido: ' + err.message });
   }
 });
 
