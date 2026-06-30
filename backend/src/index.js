@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { metaRouter }      from './routes/meta.js';
+import { whatsappRouter }  from './routes/whatsapp.js';
 import { googleRouter }    from './routes/google.js';
 import { aiRouter }        from './routes/ai.js';
 import { auditRouter }     from './routes/audit.js';
@@ -37,6 +38,7 @@ app.use('/api/ai',       authMiddleware, aiRouter);
 app.use('/api/audit',    authMiddleware, auditRouter);
 app.use('/api/reports',  authMiddleware, reportsRouter);
 app.use('/api/hubspot',  authMiddleware, hubspotRouter);
+app.use('/api/whatsapp', authMiddleware, whatsappRouter);
 
 app.use((err, req, res, next) => {
   console.error('[ERROR]', err.message);
