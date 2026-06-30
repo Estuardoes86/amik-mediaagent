@@ -12,9 +12,14 @@ const DEFAULT_CLIENTS = [
 function todayStr() { return new Date().toISOString().slice(0,10); }
 function daysAgoStr(n) { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
 
-export function AppProvider({ children }) {
-  const [activeClient, setActiveClientState] = useState(DEFAULT_CLIENTS[0]);
-  const [clients,      setClients]           = useState(DEFAULT_CLIENTS);
+export function AppProvider({ children, user, onLogout }) {
+  // Filtrar clientes según el usuario logueado
+  const allowedClients = user?.clients?.length
+    ? DEFAULT_CLIENTS.filter(c => user.clients.includes(c.id))
+    : DEFAULT_CLIENTS;
+
+  const [activeClient, setActiveClientState] = useState(allowedClients[0]);
+  const [clients,      setClients]           = useState(allowedClients);
   const [toasts,       setToasts]            = useState([]);
 
   // Date state — all in one object so changes are always detected
@@ -67,6 +72,8 @@ export function AppProvider({ children }) {
       dateParams,
       // Toast
       toasts, showToast,
+      // Auth
+      user, onLogout,
     }}>
       {children}
     </AppContext.Provider>

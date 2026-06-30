@@ -29,7 +29,7 @@ const PRESETS = [
   { value:'custom',       label:'Personalizado'    },
 ];
 
-export default function Layout() {
+export default function Layout({ onLogout, user }) {
   const { activeClient, clients, setActiveClient,
           dateMode, datePreset, setDatePreset,
           dateRange, applyDateRange } = useApp();
@@ -196,6 +196,19 @@ export default function Layout() {
             <span className="live-dot"/>
             <span style={{ fontSize:10, fontWeight:700, letterSpacing:'1.5px', color:'#059669', textTransform:'uppercase' }}>LIVE</span>
           </div>
+
+          {user && (
+            <div style={{ display:'flex', alignItems:'center', gap:8, paddingLeft:8, borderLeft:'1px solid #F3F4F6' }}>
+              {user.picture && <img src={user.picture} alt="" style={{ width:26, height:26, borderRadius:'50%', border:'1.5px solid #E5E7EB' }}/>}
+              <button onClick={onLogout}
+                style={{
+                  padding:'4px 10px', borderRadius:6, border:'1px solid #E5E7EB',
+                  background:'#fff', color:'#6B7280', fontSize:11, fontWeight:600,
+                  cursor:'pointer', transition:'all 0.12s'
+                }}
+              >Salir</button>
+            </div>
+          )}
         </div>
       </header>
 
