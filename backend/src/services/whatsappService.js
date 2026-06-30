@@ -16,7 +16,7 @@ export async function getPhoneNumberInfo() {
       {
         headers: getHeaders(),
         params: {
-          fields: 'display_phone_number,verified_name,quality_rating,code_verification_status,platform_type,throughput'
+          fields: 'display_phone_number,verified_name'
         }
       }
     );
