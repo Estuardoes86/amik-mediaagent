@@ -15,9 +15,12 @@ import AuditPage         from './pages/AuditPage.jsx';
 import AiPage            from './pages/AiPage.jsx';
 import ReportsPage       from './pages/ReportsPage.jsx';
 import SettingsPage      from './pages/SettingsPage.jsx';
+import axios from 'axios';
 import './index.css';
 
-const API = import.meta.env.VITE_API_URL || '/api';
+const API = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL + '/api'
+  : '/api';
 
 export default function App() {
   const [user, setUser]       = useState(null);
