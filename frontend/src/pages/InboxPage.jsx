@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext.jsx';
+import { whatsappApi } from '../lib/api.js';
 
 const DEMO_ACTIONS = [
   {
@@ -34,6 +35,16 @@ const DEMO_ACTIONS = [
 export default function InboxPage() {
   const { activeClient, showToast } = useApp();
   const [actions, setActions] = useState(DEMO_ACTIONS);
+  const [waStatus, setWaStatus] = useState(null);
+  const [waLoading, setWaLoading] = useState(true);
+
+  useEffect(() => {
+    if (activeClient?.id !== 'upsjb') { setWaLoading(false); return; }
+    whatsappApi.getStatus()
+      .then(res => setWaStatus(res.data))
+      .catch(() => setWaStatus(null))
+      .finally(() => setWaLoading(false));
+  }, [activeClient?.id]);
   const [log, setLog] = useState([]);
   const [expanded, setExpanded] = useState(null);
 
@@ -64,6 +75,28 @@ export default function InboxPage() {
           {actions.length} acción{actions.length !== 1 ? 'es' : ''} pendiente{actions.length !== 1 ? 's' : ''} · {activeClient.name}
         </span>
       </div>
+
+      {/* WhatsApp Status — EduAgent */}
+      {activeClient?.id === 'upsjb' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '14px 16px', marginBottom: 20, borderRadius: 'var(--radius)',
+          background: waStatus ? 'var(--green-bg)' : 'var(--bg3)',
+          border: `1px solid ${waStatus ? 'var(--green-border)' : 'var(--border)'}`,
+        }}>
+          <span style={{ fontSize: 20 }}>{waStatus ? '🟢' : '⚪'}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+              WhatsApp EduAgent {waLoading ? '— verificando...' : waStatus ? '— Conectado' : '— Sin conexión'}
+            </div>
+            {waStatus && (
+              <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
+                {waStatus.display_phone_number} · {waStatus.verified_name}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       {actions.length === 0 && (

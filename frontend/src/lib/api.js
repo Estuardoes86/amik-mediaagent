@@ -54,4 +54,9 @@ export const hubspotApi = {
   getRecent:    ()                         => api.get('/hubspot/recent'),
 };
 
+export const whatsappApi = {
+  getStatus:    ()              => api.get('/whatsapp/status'),
+  getAnalytics: (start, end)    => api.get('/whatsapp/analytics', { params: { start, end } }),
+};
+
 export default api;
