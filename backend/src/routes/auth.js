@@ -7,20 +7,35 @@ export const authRouter = Router();
 const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID);
 
 // Lista de emails autorizados
-const ALLOWED_EMAILS = [
-  'estuardo@amikgroup.com',
-  'estuardo.escobar.sabogal@gmail.com',
-  'lucia@amikgroup.com',
-  'upsjbenlinea@gmail.com',
+// ── Configuración desde Railway env vars ──
+// ALLOWED_USERS = JSON array de objetos { email, clients } o { domain, clients }
+// Ejemplo: [{"email":"juan@upsjb.edu.pe","clients":["upsjb"]},{"domain":"upsjb.edu.pe","clients":["upsjb"]}]
+const DEFAULT_USERS = [
+  { email: 'estuardo@amikgroup.com',             clients: ['upsjb','deco','espac','libra'] },
+  { email: 'estuardo.escobar.sabogal@gmail.com', clients: ['upsjb','deco','espac','libra'] },
+  { email: 'lucia@amikgroup.com',                clients: ['upsjb','deco','espac','libra'] },
+  { email: 'upsjbenlinea@gmail.com',             clients: ['upsjb'] },
+  { domain: 'upsjb.edu.pe',                      clients: ['upsjb'] },
 ];
 
-// Cliente → cuentas que puede ver
-const CLIENT_MAP = {
-  'estuardo@amikgroup.com':          ['upsjb', 'deco', 'espac', 'libra'],
-  'estuardo.escobar.sabogal@gmail.com': ['upsjb', 'deco', 'espac', 'libra'],
-  'lucia@amikgroup.com':             ['upsjb', 'deco', 'espac', 'libra'],
-  'upsjbenlinea@gmail.com':          ['upsjb'],
-};
+function getAllowedUsers() {
+  try {
+    if (process.env.ALLOWED_USERS) return JSON.parse(process.env.ALLOWED_USERS);
+  } catch(e) { console.error('[Auth] ALLOWED_USERS parse error:', e.message); }
+  return DEFAULT_USERS;
+}
+
+function getAccessForEmail(email) {
+  const users = getAllowedUsers();
+  const domain = email.split('@')[1];
+  // Buscar por email exacto primero
+  const byEmail = users.find(u => u.email === email);
+  if (byEmail) return byEmail.clients;
+  // Luego por dominio
+  const byDomain = users.find(u => u.domain === domain);
+  if (byDomain) return byDomain.clients;
+  return null;
+}
 
 // POST /api/auth/google
 authRouter.post('/google', async (req, res) => {
@@ -37,7 +52,8 @@ authRouter.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    if (!ALLOWED_EMAILS.includes(email)) {
+    const allowedClients = getAccessForEmail(email);
+    if (!allowedClients) {
       return res.status(403).json({ error: 'Acceso no autorizado. Contacta a AMIK GROUP.' });
     }
 
@@ -45,7 +61,7 @@ authRouter.post('/google', async (req, res) => {
       email,
       name: payload.name,
       picture: payload.picture,
-      clients: CLIENT_MAP[email] || [],
+      clients: allowedClients,
     };
 
     const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' });
