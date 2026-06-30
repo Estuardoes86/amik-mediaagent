@@ -30,11 +30,14 @@ metaRouter.get('/campaigns', async (req, res, next) => {
     const insightMap = {};
     for (const i of insights) insightMap[i.campaign_id] = i;
 
-    const enriched = campaigns.map(c => ({
-      ...c,
-      metrics: insightMap[c.id] || null,
-      programa: extractPrograma(c.name),
-    }));
+    // Solo campañas con gasto real en el período (igual que Meta Ads Manager)
+    const enriched = campaigns
+      .map(c => ({
+        ...c,
+        metrics: insightMap[c.id] || null,
+        programa: extractPrograma(c.name),
+      }))
+      .filter(c => c.metrics && parseFloat(c.metrics.spend || 0) > 0);
 
     const summary = aggregateInsights(insights);
 
