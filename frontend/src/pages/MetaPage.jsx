@@ -18,11 +18,11 @@ const getLeads = c => {
 };
 const getWA = c => {
   const m = c.metrics || c;
-  const WA_TYPES=['messaging_conversation','messaging_first_reply','total_messaging_connection','whatsapp_message'];
-  return (m.actions||[]).reduce((s,a)=>WA_TYPES.some(t=>(a.action_type||'').includes(t))?s+i(a.value):s, 0);
+  // Solo conversaciones de WhatsApp REALMENTE iniciadas (evento estandar de Meta)
+  return (m.actions||[]).reduce((s,a)=>a.action_type==='onsite_conversion.total_messaging_connection'?s+i(a.value):s, 0);
 };
 const getSpend  = c => parseFloat((c.metrics||c).spend||0);
-const getClics  = c => i((c.metrics||c).clicks||0);
+const getClics  = c => { const m=c.metrics||c; return i(m.inline_link_clicks ?? m.clicks||0); };
 const getImpr   = c => i((c.metrics||c).impressions||0);
 const getReach  = c => i((c.metrics||c).reach||0);
 const getCtr    = c => parseFloat((c.metrics||c).ctr||0);
@@ -104,7 +104,7 @@ export default function MetaPage() {
   const leadSpend = leadCamps.reduce((s,c)=>s+getSpend(c),0);
   const waSpend   = waCamps.reduce((s,c)=>s+getSpend(c),0);
   const leadLeads = leadCamps.reduce((s,c)=>s+getLeads(c),0);
-  const waConvs   = waCamps.reduce((s,c)=>s+getWA(c)+getClics(c),0);
+  const waConvs   = waCamps.reduce((s,c)=>s+getWA(c),0);
   const leadCpl   = leadLeads>0 ? (leadSpend/leadLeads).toFixed(2) : '—';
   const waCpl     = waConvs>0   ? (waSpend/waConvs).toFixed(2) : '—';
 

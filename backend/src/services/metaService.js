@@ -40,7 +40,7 @@ export async function getCampaigns(accountId) {
 
 export async function getCampaignInsights(accountId, datePreset = 'last_30d', since, until) {
   const data = await metaGet(`${accountId}/insights`, {
-    fields: 'campaign_id,campaign_name,impressions,clicks,spend,actions,cost_per_action_type,ctr,cpm,reach,frequency,unique_clicks,unique_ctr,action_values',
+    fields: 'campaign_id,campaign_name,impressions,clicks,inline_link_clicks,spend,actions,cost_per_action_type,ctr,cpm,reach,frequency,unique_clicks,unique_ctr,action_values',
     ...dateParams(datePreset, since, until),
     level: 'campaign',
     limit: 500
@@ -89,21 +89,19 @@ export async function getDailyInsights(accountId, datePreset = 'last_30d', since
 }
 
 export function aggregateInsights(insights) {
-  const totals = { spend:0, impressions:0, clicks:0, leads:0, purchases:0, reach:0, waConv:0, revenue:0 };
+  const totals = { spend:0, impressions:0, clicks:0, linkClicks:0, leads:0, purchases:0, reach:0, waConv:0, revenue:0 };
   for (const row of insights) {
     totals.spend       += parseFloat(row.spend || 0);
     totals.impressions += parseInt(row.impressions || 0);
     totals.clicks      += parseInt(row.clicks || 0);
+    totals.linkClicks  += parseInt(row.inline_link_clicks || 0);
     totals.reach       += parseInt(row.reach || 0);
     if (row.actions) {
       for (const a of row.actions) {
-        if (a.action_type === 'lead')                           totals.leads    += parseInt(a.value||0);
-        if (a.action_type === 'purchase')                       totals.purchases+= parseInt(a.value||0);
-        // All WhatsApp conversion types
-        if (a.action_type?.includes('messaging_conversation') ||
-            a.action_type?.includes('messaging_first_reply') ||
-            a.action_type?.includes('total_messaging_connection') ||
-            a.action_type?.includes('whatsapp_message'))        totals.waConv   += parseInt(a.value||0);
+        if (a.action_type === 'lead')                                          totals.leads    += parseInt(a.value||0);
+        if (a.action_type === 'purchase')                                      totals.purchases+= parseInt(a.value||0);
+        // Conversaciones de WhatsApp REALMENTE iniciadas (evento estandar de Meta)
+        if (a.action_type === 'onsite_conversion.total_messaging_connection')  totals.waConv    += parseInt(a.value||0);
       }
     }
     if (row.action_values) {
@@ -114,10 +112,10 @@ export function aggregateInsights(insights) {
   }
   totals.cpl       = totals.leads > 0         ? (totals.spend / totals.leads).toFixed(2)         : null;
   totals.cpaWA     = totals.waConv > 0        ? (totals.spend / totals.waConv).toFixed(2)        : null;
-  totals.ctr       = totals.impressions > 0   ? ((totals.clicks/totals.impressions)*100).toFixed(2) : null;
+  totals.ctr       = totals.impressions > 0   ? ((totals.linkClicks/totals.impressions)*100).toFixed(2) : null;
   totals.cpm       = totals.impressions > 0   ? ((totals.spend/totals.impressions)*1000).toFixed(2) : null;
-  totals.cpc       = totals.clicks > 0        ? (totals.spend/totals.clicks).toFixed(2)          : null;
-  totals.convRate  = totals.clicks > 0 && totals.leads > 0 ? ((totals.leads/totals.clicks)*100).toFixed(2) : null;
+  totals.cpc       = totals.linkClicks > 0    ? (totals.spend/totals.linkClicks).toFixed(2)      : null;
+  totals.convRate  = totals.linkClicks > 0 && totals.leads > 0 ? ((totals.leads/totals.linkClicks)*100).toFixed(2) : null;
   totals.frequency = totals.reach > 0         ? (totals.impressions/totals.reach).toFixed(2)     : null;
   totals.roas      = totals.spend > 0 && totals.revenue > 0 ? (totals.revenue/totals.spend).toFixed(2) : null;
   return totals;
