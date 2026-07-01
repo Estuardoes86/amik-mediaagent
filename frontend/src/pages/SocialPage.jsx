@@ -80,8 +80,8 @@ const DEMO_DATA = {
     peorPost: {tipo:'Carrusel',fecha:'8 Jun',alcance:2140,eng:1.4,texto:'Cronograma de pagos'},
   },
   youtube:{
-    seguidores:3840, seguidoresDelta:128,
-    alcance:28400, impresiones:94000, engagement:3.1, posts:6,
+    seguidores:8120, seguidoresDelta:0,
+    alcance:3576657, impresiones:3576657, engagement:4.6, posts:20,
     mensual:[
       {mes:'Jun 25',seg:2800,alc:14000,imp:46000,eng:2.4,posts:4,likes:840,comentarios:98,shares:210},
       {mes:'Jul 25',seg:2940,alc:16000,imp:53000,eng:2.6,posts:4,likes:960,comentarios:112,shares:240},
@@ -105,8 +105,8 @@ const DEMO_DATA = {
       {semana:'W3 Jun',alc:7200,eng:3.1,posts:2},{semana:'W4 Jun',alc:7000,eng:3.0,posts:1},
     ],
     audiencia:[{pais:'Perú',pct:81},{pais:'Chile',pct:6},{pais:'Colombia',pct:5},{pais:'Argentina',pct:4},{pais:'Otros',pct:4}],
-    mejorPost:{tipo:'Video',fecha:'15 Jun',alcance:8400,eng:5.2,texto:'Tour virtual Campus Chorrillos'},
-    peorPost: {tipo:'Video',fecha:'2 Jun',alcance:480,eng:1.1,texto:'Informativo matrículas 2026'},
+    mejorPost:{tipo:'Video',fecha:'5 Jun 2026',alcance:17316,eng:0,texto:'Estudia Administración y Negocios Internacionales | UPSJB'},
+    peorPost: {tipo:'Video',fecha:'24 Jun 2026',alcance:11,eng:9.1,texto:'De Estudiante a Dueña de mi Propia Clínica: Estomatología en la UPSJB'},
   },
 };
 
@@ -313,7 +313,7 @@ export default function SocialPage() {
           {apiLoading && <span style={{fontSize:11,color:'var(--text4)',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px'}}>⟳ Cargando...</span>}
           {!apiLoading && isReal  && <span style={{fontSize:11,color:'#059669',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:6,padding:'4px 10px'}}>● Tiempo real</span>}
           {!apiLoading && !isReal && <span style={{fontSize:11,color:'var(--gold)',background:'var(--gold-dim)',border:'1px solid var(--gold-border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo</span>}
-          <button className="btn btn-ghost btn-sm">↗ Metricool</button>
+
         </div>
       </div>
 
