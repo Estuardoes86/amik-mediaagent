@@ -526,55 +526,75 @@ export default function MetaPage() {
 
       {/* ═══ POR PROGRAMA ═══ */}
       {tab==='programa'&&(<>
-        {/* ── Gráficos: altura dinámica según nº de filas, label = carrera + sede ── */}
+        {/* ── Gráficos full-width apilados, altura dinámica ── */}
         {(()=>{
+          const mkLabel = p => p.sede && p.sede!=='Presencial' ? `${p.prog} · ${p.sede}` : p.prog;
           const cplData = byPrograma
             .filter(p=>p.cplForm && p.prog!=='Otros')
             .sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999))
-            .map(p=>({ ...p, label: p.sede&&p.sede!=='Presencial' ? `${p.prog} (${p.sede})` : p.prog }));
+            .map(p=>({ ...p, label: mkLabel(p) }));
           const leadsData = [...byPrograma]
             .filter(p=>p.prog!=='Otros')
             .sort((a,b)=>b.totalLeads-a.totalLeads)
-            .map(p=>({ ...p, label: p.sede&&p.sede!=='Presencial' ? `${p.prog} (${p.sede})` : p.prog }));
-          const ROW_H = 28;
-          const hCpl   = Math.max(320, cplData.length * ROW_H + 40);
-          const hLeads = Math.max(320, leadsData.length * ROW_H + 40);
-          const LABEL_W = 200;
-          return (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
-          <div className="card">
-            <div className="card-head"><div className="card-title">CPL por programa · menor es mejor</div></div>
-            <div className="card-body" style={{ overflowY:'auto', maxHeight:520 }}>
-              <ResponsiveContainer width="100%" height={hCpl}>
-                <BarChart data={cplData} layout="vertical" barSize={16} margin={{ left:8, right:24, top:4, bottom:4 }}>
-                  <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`}/>
-                  <YAxis type="category" dataKey="label" tick={{ fontSize:10, fill:'var(--text2)', width:LABEL_W }} axisLine={false} tickLine={false} width={LABEL_W}/>
-                  <Tooltip content={<Tip/>}/>
-                  <Bar dataKey="cplForm" name="CPL Form. S/" radius={[0,4,4,0]}>
-                    {cplData.map((p,i)=>(
-                      <Cell key={i} fill={parseFloat(p.cplForm)<35?'var(--green)':parseFloat(p.cplForm)<55?'var(--gold)':'var(--red)'}/>
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            .map(p=>({ ...p, label: mkLabel(p) }));
+          const ROW_H = 32;
+          const LABEL_W = 260;
+          const hCpl   = cplData.length * ROW_H + 32;
+          const hLeads = leadsData.length * ROW_H + 32;
+          // Custom tick con elipsis al renderizar
+          const AxisTick = ({ x, y, payload }) => (
+            <text x={x} y={y} dy={4} textAnchor="end" fontSize={11} fill="var(--text2)">
+              {payload.value.length > 32 ? payload.value.slice(0,31)+'…' : payload.value}
+            </text>
+          );
+          return (<>
+        <div className="card" style={{ marginBottom:16 }}>
+          <div className="card-head">
+            <div className="card-title">CPL Lead Ads por programa · menor es mejor</div>
+            <div style={{ display:'flex', gap:12, fontSize:11 }}>
+              <span style={{ color:'var(--green)', fontWeight:600 }}>● &lt;S/35 Bueno</span>
+              <span style={{ color:'var(--gold)', fontWeight:600 }}>● S/35–55 Regular</span>
+              <span style={{ color:'var(--red)', fontWeight:600 }}>● &gt;S/55 Revisar</span>
             </div>
           </div>
-          <div className="card">
-            <div className="card-head"><div className="card-title">Leads por programa</div></div>
-            <div className="card-body" style={{ overflowY:'auto', maxHeight:520 }}>
-              <ResponsiveContainer width="100%" height={hLeads}>
-                <BarChart data={leadsData} layout="vertical" barSize={16} margin={{ left:8, right:24, top:4, bottom:4 }}>
-                  <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false}/>
-                  <YAxis type="category" dataKey="label" tick={{ fontSize:10, fill:'var(--text2)', width:LABEL_W }} axisLine={false} tickLine={false} width={LABEL_W}/>
-                  <Tooltip content={<Tip/>}/>
-                  <Bar dataKey="leadsForm" name="Lead Ads" fill="#1877F2" opacity={.85} radius={[0,0,0,0]} stackId="a"/>
-                  <Bar dataKey="leadsWA"   name="WhatsApp"  fill="#25D366" opacity={.85} radius={[0,4,4,0]} stackId="a"/>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="card-body">
+            <ResponsiveContainer width="100%" height={hCpl}>
+              <BarChart data={cplData} layout="vertical" barSize={18} margin={{ left:0, right:48, top:4, bottom:4 }}>
+                <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`}/>
+                <YAxis type="category" dataKey="label" tick={<AxisTick/>} axisLine={false} tickLine={false} width={LABEL_W}/>
+                <Tooltip formatter={(v)=>[`S/ ${parseFloat(v).toFixed(2)}`, 'CPL Form.']} contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
+                <Bar dataKey="cplForm" name="CPL Form." radius={[0,6,6,0]} label={{ position:'right', fontSize:11, fill:'var(--text2)', formatter:v=>`S/${parseFloat(v).toFixed(0)}` }}>
+                  {cplData.map((p,idx)=>(
+                    <Cell key={idx} fill={parseFloat(p.cplForm)<35?'#10B981':parseFloat(p.cplForm)<55?'#F59E0B':'#EF4444'}/>
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-          );
+
+        <div className="card" style={{ marginBottom:20 }}>
+          <div className="card-head">
+            <div className="card-title">Leads por programa</div>
+            <div style={{ display:'flex', gap:12, fontSize:11 }}>
+              <span style={{ color:'#1877F2', fontWeight:600 }}>■ Lead Ads (form.)</span>
+              <span style={{ color:'#25D366', fontWeight:600 }}>■ Click to WhatsApp</span>
+            </div>
+          </div>
+          <div className="card-body">
+            <ResponsiveContainer width="100%" height={hLeads}>
+              <BarChart data={leadsData} layout="vertical" barSize={18} margin={{ left:0, right:48, top:4, bottom:4 }}>
+                <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false}/>
+                <YAxis type="category" dataKey="label" tick={<AxisTick/>} axisLine={false} tickLine={false} width={LABEL_W}/>
+                <Tooltip contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
+                <Bar dataKey="leadsForm" name="Lead Ads" fill="#1877F2" opacity={.9} radius={[0,0,0,0]} stackId="a"/>
+                <Bar dataKey="leadsWA"   name="WhatsApp" fill="#25D366" opacity={.9} radius={[0,6,6,0]} stackId="a"
+                  label={{ position:'right', fontSize:11, fill:'var(--text2)', formatter:(v,entry)=> entry?.leadsForm!=null ? (entry.leadsForm||0)+(v||0) : v }}/>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+          </>);
         })()}
 
         <div className="card">
