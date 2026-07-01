@@ -559,8 +559,8 @@ export default function MetaPage() {
           </div>
           <div className="card-body">
             <ResponsiveContainer width="100%" height={hCpl}>
-              <BarChart data={cplData} layout="vertical" barSize={18} margin={{ left:0, right:48, top:4, bottom:4 }}>
-                <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`}/>
+              <BarChart data={cplData} layout="vertical" barSize={18} margin={{ left:0, right:72, top:4, bottom:4 }}>
+                <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`} domain={[0, dataMax => Math.ceil(dataMax * 1.25)]}/>
                 <YAxis type="category" dataKey="label" tick={<AxisTick/>} axisLine={false} tickLine={false} width={LABEL_W}/>
                 <Tooltip formatter={(v)=>[`S/ ${parseFloat(v).toFixed(2)}`, 'CPL Form.']} contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
                 <Bar dataKey="cplForm" name="CPL Form." radius={[0,6,6,0]} label={{ position:'right', fontSize:11, fill:'var(--text2)', formatter:v=>`S/${parseFloat(v).toFixed(0)}` }}>
@@ -578,7 +578,7 @@ export default function MetaPage() {
             <div className="card-title">Leads por programa</div>
             <div style={{ display:'flex', gap:12, fontSize:11 }}>
               <span style={{ color:'#1877F2', fontWeight:600 }}>■ Lead Ads (form.)</span>
-              <span style={{ color:'#25D366', fontWeight:600 }}>■ Click to WhatsApp</span>
+              <span style={{ color:'#25D366', fontWeight:600 }}>■ Conv. WhatsApp</span>
             </div>
           </div>
           <div className="card-body">
@@ -588,7 +588,7 @@ export default function MetaPage() {
                 <YAxis type="category" dataKey="label" tick={<AxisTick/>} axisLine={false} tickLine={false} width={LABEL_W}/>
                 <Tooltip contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
                 <Bar dataKey="leadsForm" name="Lead Ads" fill="#1877F2" opacity={.9} radius={[0,0,0,0]} stackId="a"/>
-                <Bar dataKey="leadsWA"   name="WhatsApp" fill="#25D366" opacity={.9} radius={[0,6,6,0]} stackId="a"
+                <Bar dataKey="leadsWA"   name="Conv. WhatsApp" fill="#25D366" opacity={.9} radius={[0,6,6,0]} stackId="a"
                   label={{ position:'right', fontSize:11, fill:'var(--text2)', formatter:(v,entry)=> entry?.leadsForm!=null ? (entry.leadsForm||0)+(v||0) : v }}/>
               </BarChart>
             </ResponsiveContainer>
