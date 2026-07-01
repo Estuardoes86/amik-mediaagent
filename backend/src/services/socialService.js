@@ -5,7 +5,7 @@ const cache = new NodeCache({ stdTTL: 900 }); // 15 min cache
 const META_BASE = 'https://graph.facebook.com/v19.0';
 const YT_BASE   = 'https://www.googleapis.com/youtube/v3';
 
-function getToken() { return process.env.META_ACCESS_TOKEN; }
+function getToken() { return process.env.META_PAGE_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN; }
 
 async function metaGet(path, params = {}) {
   const key = `social:${path}:${JSON.stringify(params)}`;
