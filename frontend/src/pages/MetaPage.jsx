@@ -125,7 +125,7 @@ export default function MetaPage() {
     else if (/ ICA( |$)/.test(n))                                        sede = 'Ica';
     else if (n.includes('CHINCHA'))                                      sede = 'Chincha';
     // Detectar carrera
-    if (n.includes('WHATSAPP MEDICINA')||n.includes('MEDICINA HUMANA')) return { carrera:'Medicina Humana', sede, isWA };
+    if (n.includes('WHATSAPP MEDICINA')||n.includes('MEDICINA HUMANA')||n.includes('MEDICINA_HUMANA')||(n.includes('MEDICINA')&&!n.includes('VETERINARIA'))) return { carrera:'Medicina Humana', sede, isWA };
     if (n.includes('VETERINARIA'))   return { carrera:'Medicina Veterinaria y Zootecnia', sede, isWA };
     if (n.includes('ENFERMERIA'))    return { carrera:'Enfermería', sede, isWA };
     if (n.includes('PSICOLOGIA'))    return { carrera:'Psicología', sede, isWA };
@@ -526,17 +526,32 @@ export default function MetaPage() {
 
       {/* ═══ POR PROGRAMA ═══ */}
       {tab==='programa'&&(<>
+        {/* ── Gráficos: altura dinámica según nº de filas, label = carrera + sede ── */}
+        {(()=>{
+          const cplData = byPrograma
+            .filter(p=>p.cplForm && p.prog!=='Otros')
+            .sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999))
+            .map(p=>({ ...p, label: p.sede&&p.sede!=='Presencial' ? `${p.prog} (${p.sede})` : p.prog }));
+          const leadsData = [...byPrograma]
+            .filter(p=>p.prog!=='Otros')
+            .sort((a,b)=>b.totalLeads-a.totalLeads)
+            .map(p=>({ ...p, label: p.sede&&p.sede!=='Presencial' ? `${p.prog} (${p.sede})` : p.prog }));
+          const ROW_H = 28;
+          const hCpl   = Math.max(320, cplData.length * ROW_H + 40);
+          const hLeads = Math.max(320, leadsData.length * ROW_H + 40);
+          const LABEL_W = 200;
+          return (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
           <div className="card">
             <div className="card-head"><div className="card-title">CPL por programa · menor es mejor</div></div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={byPrograma.filter(p=>p.cplForm).sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999))} layout="vertical" barSize={18}>
+            <div className="card-body" style={{ overflowY:'auto', maxHeight:520 }}>
+              <ResponsiveContainer width="100%" height={hCpl}>
+                <BarChart data={cplData} layout="vertical" barSize={16} margin={{ left:8, right:24, top:4, bottom:4 }}>
                   <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`}/>
-                  <YAxis type="category" dataKey="prog" tick={{ fontSize:10, fill:'var(--text2)' }} axisLine={false} tickLine={false} width={120}/>
+                  <YAxis type="category" dataKey="label" tick={{ fontSize:10, fill:'var(--text2)', width:LABEL_W }} axisLine={false} tickLine={false} width={LABEL_W}/>
                   <Tooltip content={<Tip/>}/>
                   <Bar dataKey="cplForm" name="CPL Form. S/" radius={[0,4,4,0]}>
-                    {byPrograma.filter(p=>p.cplForm).sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999)).map((p,i)=>(
+                    {cplData.map((p,i)=>(
                       <Cell key={i} fill={parseFloat(p.cplForm)<35?'var(--green)':parseFloat(p.cplForm)<55?'var(--gold)':'var(--red)'}/>
                     ))}
                   </Bar>
@@ -546,11 +561,11 @@ export default function MetaPage() {
           </div>
           <div className="card">
             <div className="card-head"><div className="card-title">Leads por programa</div></div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={[...byPrograma].sort((a,b)=>b.totalLeads-a.totalLeads)} layout="vertical" barSize={18}>
+            <div className="card-body" style={{ overflowY:'auto', maxHeight:520 }}>
+              <ResponsiveContainer width="100%" height={hLeads}>
+                <BarChart data={leadsData} layout="vertical" barSize={16} margin={{ left:8, right:24, top:4, bottom:4 }}>
                   <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false}/>
-                  <YAxis type="category" dataKey="prog" tick={{ fontSize:10, fill:'var(--text2)' }} axisLine={false} tickLine={false} width={120}/>
+                  <YAxis type="category" dataKey="label" tick={{ fontSize:10, fill:'var(--text2)', width:LABEL_W }} axisLine={false} tickLine={false} width={LABEL_W}/>
                   <Tooltip content={<Tip/>}/>
                   <Bar dataKey="leadsForm" name="Lead Ads" fill="#1877F2" opacity={.85} radius={[0,0,0,0]} stackId="a"/>
                   <Bar dataKey="leadsWA"   name="WhatsApp"  fill="#25D366" opacity={.85} radius={[0,4,4,0]} stackId="a"/>
@@ -559,6 +574,8 @@ export default function MetaPage() {
             </div>
           </div>
         </div>
+          );
+        })()}
 
         <div className="card">
           <div className="card-head">
