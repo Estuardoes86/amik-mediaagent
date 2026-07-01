@@ -56,3 +56,4 @@ app.listen(PORT, () => {
   console.log(`   HubSpot:  ${process.env.HUBSPOT_API_KEY       ? '✓' : '✗ HUBSPOT_API_KEY'}`);
   console.log(`   Claude:   ${process.env.ANTHROPIC_API_KEY     ? '✓' : '✗ ANTHROPIC_API_KEY'}\n`);
 });
+
