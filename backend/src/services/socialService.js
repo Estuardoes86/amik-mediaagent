@@ -49,11 +49,11 @@ export async function getFacebookInsights(periodo = 'month') {
   // Métricas de página
   const metrics = [
     'page_fans',                    // seguidores totales
-    'page_fan_adds_unique',         // nuevos seguidores
+    'page_fan_adds',         // nuevos seguidores
     'page_impressions_unique',      // alcance
     'page_impressions',             // impresiones
-    'page_post_engagements',        // engagement total
-    'page_posts_impressions_unique',// alcance de posts
+    'page_engaged_users',        // engagement total
+    // alcance de posts
   ].join(',');
 
   const [pageInfo, insights, posts] = await Promise.all([
@@ -100,14 +100,14 @@ export async function getFacebookInsights(periodo = 'month') {
   const seguidores     = pageInfo.followers_count || pageInfo.fan_count || 0;
   const alcance        = insightMap['page_impressions_unique'] || 0;
   const impresiones    = insightMap['page_impressions'] || 0;
-  const engTotal       = insightMap['page_post_engagements'] || 0;
+  const engTotal       = insightMap['page_engaged_users'] || 0;
   const engagement     = alcance > 0 ? parseFloat(((engTotal / alcance) * 100).toFixed(1)) : 0;
 
   return {
     plataforma:  'facebook',
     nombre:       pageInfo.name || 'UPSJB',
     seguidores,
-    seguidoresDelta: insightMap['page_fan_adds_unique'] || 0,
+    seguidoresDelta: insightMap['page_fan_adds'] || 0,
     alcance,
     impresiones,
     engagement,
