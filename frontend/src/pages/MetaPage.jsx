@@ -531,8 +531,8 @@ export default function MetaPage() {
           const mkLabel = p => p.sede && p.sede!=='Presencial' ? `${p.prog} · ${p.sede}` : p.prog;
           const cplData = byPrograma
             .filter(p=>p.cplForm && p.prog!=='Otros')
-            .sort((a,b)=>parseFloat(a.cplForm||999)-parseFloat(b.cplForm||999))
-            .map(p=>({ ...p, label: mkLabel(p) }));
+            .map(p=>({ ...p, cplFormN: parseFloat(p.cplForm||0), label: mkLabel(p) }))
+            .sort((a,b)=>a.cplFormN-b.cplFormN);
           const leadsData = [...byPrograma]
             .filter(p=>p.prog!=='Otros')
             .sort((a,b)=>b.totalLeads-a.totalLeads)
@@ -552,9 +552,9 @@ export default function MetaPage() {
           <div className="card-head">
             <div className="card-title">CPL Lead Ads por programa · menor es mejor</div>
             <div style={{ display:'flex', gap:12, fontSize:11 }}>
-              <span style={{ color:'var(--green)', fontWeight:600 }}>● &lt;S/35 Bueno</span>
-              <span style={{ color:'var(--gold)', fontWeight:600 }}>● S/35–55 Regular</span>
-              <span style={{ color:'var(--red)', fontWeight:600 }}>● &gt;S/55 Revisar</span>
+              <span style={{ color:'#10B981', fontWeight:600 }}>● &lt;S/15 Excelente</span>
+              <span style={{ color:'#F59E0B', fontWeight:600 }}>● S/15–25 Regular</span>
+              <span style={{ color:'#EF4444', fontWeight:600 }}>● &gt;S/25 Revisar</span>
             </div>
           </div>
           <div className="card-body">
@@ -562,10 +562,10 @@ export default function MetaPage() {
               <BarChart data={cplData} layout="vertical" barSize={18} margin={{ left:0, right:72, top:4, bottom:4 }}>
                 <XAxis type="number" tick={{ fontSize:9, fill:'var(--text3)' }} axisLine={false} tickLine={false} tickFormatter={v=>`S/${v}`} domain={[0, dataMax => Math.ceil(dataMax * 1.25)]}/>
                 <YAxis type="category" dataKey="label" tick={<AxisTick/>} axisLine={false} tickLine={false} width={LABEL_W}/>
-                <Tooltip formatter={(v)=>[`S/ ${parseFloat(v).toFixed(2)}`, 'CPL Form.']} contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
-                <Bar dataKey="cplForm" name="CPL Form." radius={[0,6,6,0]} label={{ position:'right', fontSize:11, fill:'var(--text2)', formatter:v=>`S/${parseFloat(v).toFixed(0)}` }}>
+                <Tooltip formatter={(v)=>[`S/ ${Number(v).toFixed(2)}`, 'CPL Form.']} contentStyle={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12 }}/>
+                <Bar dataKey="cplFormN" name="CPL Form." radius={[0,6,6,0]} label={{ position:'right', fontSize:11, fill:'var(--text3)', formatter:v=>`S/${Number(v).toFixed(0)}` }}>
                   {cplData.map((p,idx)=>(
-                    <Cell key={idx} fill={parseFloat(p.cplForm)<35?'#10B981':parseFloat(p.cplForm)<55?'#F59E0B':'#EF4444'}/>
+                    <Cell key={idx} fill={p.cplFormN<15?'#10B981':p.cplFormN<25?'#F59E0B':'#EF4444'}/>
                   ))}
                 </Bar>
               </BarChart>
