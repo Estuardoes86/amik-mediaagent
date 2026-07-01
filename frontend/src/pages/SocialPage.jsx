@@ -22,8 +22,8 @@ const PLAT = {
 // ── Datos DEMO ──
 const DEMO_DATA = {
   facebook: {
-    seguidores:18420, seguidoresDelta:312,
-    alcance:142000, impresiones:318000, engagement:4.2, posts:18,
+    seguidores:215293, seguidoresDelta:0,
+    alcance:115490, impresiones:288725, engagement:5.4, posts:20,
     mensual:[
       {mes:'Jun 25',seg:14200,alc:82000,imp:190000,eng:3.4,posts:14,likes:2840,comentarios:312,shares:520},
       {mes:'Jul 25',seg:14800,alc:88000,imp:204000,eng:3.6,posts:15,likes:3100,comentarios:340,shares:580},
@@ -47,8 +47,8 @@ const DEMO_DATA = {
       {semana:'W3 Jun',alc:36000,eng:4.2,posts:4},{semana:'W4 Jun',alc:34000,eng:4.1,posts:4},
     ],
     audiencia:[{pais:'Perú',pct:72},{pais:'Chile',pct:9},{pais:'Colombia',pct:8},{pais:'Argentina',pct:6},{pais:'Otros',pct:5}],
-    mejorPost:{tipo:'Video',fecha:'18 Jun',alcance:28400,eng:7.8,texto:'¡Conoce nuestra nueva sede!'},
-    peorPost: {tipo:'Imagen',fecha:'4 Jun',alcance:1820,eng:0.9,texto:'Horario de atención'},
+    mejorPost:{tipo:'Video',fecha:'19 Jun 2026',alcance:395,eng:0,texto:'🎉 Orgullosos de ser parte de la celebración por los 463 años de historia de Ica'},
+    peorPost: {tipo:'Album',fecha:'5 Jun 2026',alcance:28,eng:0,texto:'🌎 Hay decisiones que tu yo del futuro agradecerá. Aprender un idioma...'},
   },
   instagram:{
     seguidores:21760, seguidoresDelta:0,
@@ -288,14 +288,14 @@ export default function SocialPage() {
 
   // Ranking
   const ranking = useMemo(() =>
-    Object.entries(DEMO_DATA)
+    Object.entries(allData)
       .map(([key, val]) => ({
         key, label: PLAT[key].label, color: PLAT[key].color,
         score: calcScore(val), eng: val.engagement,
         seg: val.seguidores, delta: val.seguidoresDelta,
       }))
       .sort((aa, bb) => bb.score - aa.score)
-  , []);
+  , [allData]);
 
   return (
     <div className="page-wrap scroll-y">
