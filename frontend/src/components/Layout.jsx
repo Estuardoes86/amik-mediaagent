@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 
 /* ══════════════════════════════════════════════
-   AMIK MediaAgent — Sidebar Layout v2 — 1782931857
+   AMIK MediaAgent — Sidebar Layout v2
    Colapsable con iconos · Selector de cliente · Multi-dominio
 ══════════════════════════════════════════════ */
 
@@ -126,11 +126,11 @@ export default function Layout() {
 
         {/* Logo + collapse */}
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'flex', alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
           padding: collapsed ? '16px 0' : '16px 16px',
           height: 64, flexShrink: 0,
           borderBottom: '1px solid var(--sidebar-border)',
-          justifyContent: collapsed ? 'center' : 'space-between',
         }}>
           {!collapsed && (
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
