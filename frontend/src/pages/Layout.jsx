@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 
 /* ══════════════════════════════════════════════
-   AMIK MediaAgent — Sidebar Layout v2
+   AMIK MediaAgent — Sidebar Layout v2 — 1782931857
    Colapsable con iconos · Selector de cliente · Multi-dominio
 ══════════════════════════════════════════════ */
 
