@@ -76,12 +76,12 @@ const DEMO_DATA = {
       {semana:'W3 Jun',alc:50000,eng:6.9,posts:6},{semana:'W4 Jun',alc:48000,eng:6.8,posts:6},
     ],
     audiencia:[{pais:'Perú',pct:68},{pais:'Chile',pct:11},{pais:'Colombia',pct:10},{pais:'Argentina',pct:7},{pais:'Otros',pct:4}],
-    mejorPost:{tipo:'Reel',fecha:'22 Jun',alcance:41200,eng:11.2,texto:'Un día en UPSJB 🎓'},
-    peorPost: {tipo:'Carrusel',fecha:'8 Jun',alcance:2140,eng:1.4,texto:'Cronograma de pagos'},
+    mejorPost:{tipo:'IMAGE',fecha:'18 Jun 2026',alcance:2009,eng:0,texto:'⚽ ¡Se viene el sorteo más mundialista de la San Juan! Participa y gana un álbum'},
+    peorPost: {tipo:'VIDEO',fecha:'29 May 2026',alcance:81,eng:0,texto:'Tu próxima gran investigación puede empezar con un clic. Accede a e-books...'},
   },
   youtube:{
     seguidores:8120, seguidoresDelta:0,
-    alcance:3576657, impresiones:3576657, engagement:4.6, posts:20,
+    alcance:3576657, impresiones:3576657, engagement:2.5, posts:20,
     mensual:[
       {mes:'Jun 25',seg:2800,alc:14000,imp:46000,eng:2.4,posts:4,likes:840,comentarios:98,shares:210},
       {mes:'Jul 25',seg:2940,alc:16000,imp:53000,eng:2.6,posts:4,likes:960,comentarios:112,shares:240},
@@ -105,8 +105,8 @@ const DEMO_DATA = {
       {semana:'W3 Jun',alc:7200,eng:3.1,posts:2},{semana:'W4 Jun',alc:7000,eng:3.0,posts:1},
     ],
     audiencia:[{pais:'Perú',pct:81},{pais:'Chile',pct:6},{pais:'Colombia',pct:5},{pais:'Argentina',pct:4},{pais:'Otros',pct:4}],
-    mejorPost:{tipo:'Video',fecha:'5 Jun 2026',alcance:17316,eng:0,texto:'Estudia Administración y Negocios Internacionales | UPSJB'},
-    peorPost: {tipo:'Video',fecha:'24 Jun 2026',alcance:11,eng:9.1,texto:'De Estudiante a Dueña de mi Propia Clínica: Estomatología en la UPSJB'},
+    mejorPost:{tipo:'Video',fecha:'29 Dic 2025',alcance:83694,eng:0.4,texto:'Estudia Medicina Veterinaria y Zootecnia en la UPSJB ✈️'},
+    peorPost: {tipo:'Video',fecha:'17 Dic 2025',alcance:38,eng:5.3,texto:'UPSJB en el Congreso PAMS 2025: Declaraciones de autoridades'},
   },
 };
 
@@ -311,8 +311,14 @@ export default function SocialPage() {
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           {apiLoading && <span style={{fontSize:11,color:'var(--text4)',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px'}}>⟳ Cargando...</span>}
-          {!apiLoading && isReal  && <span style={{fontSize:11,color:'#059669',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:6,padding:'4px 10px'}}>● Tiempo real</span>}
-          {!apiLoading && !isReal && <span style={{fontSize:11,color:'var(--gold)',background:'var(--gold-dim)',border:'1px solid var(--gold-border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo</span>}
+          {!apiLoading && apiData && (()=>{
+            const reales = Object.values(apiData).filter(pp=>pp.esReal).length;
+            const total  = Object.keys(apiData).length;
+            return reales > 0
+              ? <span style={{fontSize:11,color:'#059669',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:6,padding:'4px 10px'}}>● {reales}/{total} plataformas en tiempo real</span>
+              : <span style={{fontSize:11,color:'var(--gold)',background:'var(--gold-dim)',border:'1px solid var(--gold-border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo</span>;
+          })()}
+          {!apiLoading && !apiData && <span style={{fontSize:11,color:'var(--gold)',background:'var(--gold-dim)',border:'1px solid var(--gold-border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo</span>}
 
         </div>
       </div>
