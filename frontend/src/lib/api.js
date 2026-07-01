@@ -46,6 +46,10 @@ export const reportsApi = {
   list:     ()        => api.get('/reports/list')
 };
 
+export const authApi = {
+  login: (email, password) => api.post('/auth/login', { email, password }),
+};
+
 export const hubspotApi = {
   getSummary:   (pipelineId, daysBack=30) => api.get('/hubspot/summary',   { params:{ pipelineId, daysBack } }),
   getPipelines: ()                         => api.get('/hubspot/pipelines'),

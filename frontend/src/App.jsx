@@ -69,7 +69,7 @@ export default function App() {
     </div>
   );
 
-  if (!user) return <LoginPage onLogin={handleLogin} />;
+  if (!user) return <LoginPage onLogin={handleLogin} onLocalLogin={setUser} />;
 
   return (
     <AppProvider user={user} onLogout={handleLogout}>

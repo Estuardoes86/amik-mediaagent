@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 export const authRouter = Router();
 
@@ -81,6 +82,48 @@ authRouter.post('/google', async (req, res) => {
   } catch (err) {
     console.error('[Auth] Google error full:', err);
     res.status(401).json({ error: 'Token de Google inválido: ' + err.message });
+  }
+});
+
+// ── LOGIN LOCAL (usuario + contraseña) ──
+// LOCAL_USERS = JSON array: [{ email, name, passwordHash, clients, role }]
+// La contraseña se guarda SIEMPRE hasheada con bcrypt (nunca en texto plano).
+// Genera el hash en tu Mac con: node -e "console.log(require('bcryptjs').hashSync('TU_CLAVE',10))"
+function getLocalUsers() {
+  try {
+    if (process.env.LOCAL_USERS) return JSON.parse(process.env.LOCAL_USERS);
+  } catch(e) { console.error('[Auth] LOCAL_USERS parse error:', e.message); }
+  return [];
+}
+
+// POST /api/auth/login  { email, password }
+authRouter.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
+
+    const users = getLocalUsers();
+    const found = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    if (!found || !found.passwordHash) {
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+
+    const ok = bcrypt.compareSync(password, found.passwordHash);
+    if (!ok) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+
+    const user = {
+      email: found.email,
+      name: found.name || found.email.split('@')[0],
+      picture: null,
+      clients: found.clients || [],
+      role: found.role || 'client',
+    };
+
+    const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user });
+  } catch (err) {
+    console.error('[Auth] Local login error:', err);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 });
 
