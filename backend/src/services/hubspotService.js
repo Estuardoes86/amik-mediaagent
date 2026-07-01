@@ -221,3 +221,106 @@ export async function getHubspotSummary(pipelineId, daysBack = 30) {
     pipelines: pipelines.map(p=>({ id:p.id, label:p.label }))
   };
 }
+
+/* ══════════════════════════════════════════════
+   EMAIL MARKETING — Marketing Emails API
+   Requiere scope: marketing-email (o content)
+══════════════════════════════════════════════ */
+export async function getEmailMarketingStats(daysBack = 90) {
+  try {
+    // v3 marketing emails: lista de correos con estadísticas agregadas
+    const list = await hsGet('/marketing/v3/emails/', {
+      limit: 100,
+      sort: '-publishDate',
+    });
+    const emails = list.results || [];
+
+    // Traer estadísticas por email (agregado)
+    const rows = [];
+    let agg = {
+      sent:0, delivered:0, open:0, click:0, bounce:0,
+      unsubscribed:0, spamreport:0, notsent:0, reply:0,
+    };
+
+    for (const e of emails.slice(0, 40)) {
+      const st = e.stats?.counters || e.statistics?.counters || {};
+      const sent        = st.sent        || 0;
+      const delivered   = st.delivered   || 0;
+      const open        = st.open        || st.uniqueOpen   || 0;
+      const click       = st.click       || st.uniqueClick  || 0;
+      const bounce      = st.bounce       || (st.hardbounce||0)+(st.softbounce||0);
+      const unsub       = st.unsubscribed || 0;
+      const spam        = st.spamreport   || 0;
+      if (sent === 0 && delivered === 0) continue;
+      agg.sent+=sent; agg.delivered+=delivered; agg.open+=open;
+      agg.click+=click; agg.bounce+=bounce; agg.unsubscribed+=unsub; agg.spamreport+=spam;
+      rows.push({
+        id: e.id,
+        name: e.name || e.subject || '(sin nombre)',
+        subject: e.subject || '',
+        date: e.publishDate || e.updated || null,
+        sent, delivered, open, click, bounce, unsub, spam,
+        openRate:  delivered ? +(open/delivered*100).toFixed(1)  : 0,
+        clickRate: delivered ? +(click/delivered*100).toFixed(1) : 0,
+        ctor:      open ? +(click/open*100).toFixed(1) : 0,
+      });
+    }
+
+    const deliveryRate = agg.sent ? +(agg.delivered/agg.sent*100).toFixed(1) : 0;
+    const openRate     = agg.delivered ? +(agg.open/agg.delivered*100).toFixed(1) : 0;
+    const clickRate    = agg.delivered ? +(agg.click/agg.delivered*100).toFixed(1) : 0;
+    const ctor         = agg.open ? +(agg.click/agg.open*100).toFixed(1) : 0;
+    const bounceRate   = agg.sent ? +(agg.bounce/agg.sent*100).toFixed(1) : 0;
+    const unsubRate    = agg.delivered ? +(agg.unsubscribed/agg.delivered*100).toFixed(2) : 0;
+
+    return {
+      real: true,
+      totals: {
+        ...agg,
+        deliveryRate, openRate, clickRate, ctor, bounceRate, unsubRate,
+        emailCount: rows.length,
+      },
+      campaigns: rows.sort((a,b)=> (b.sent||0)-(a.sent||0)),
+    };
+  } catch (err) {
+    // Scope faltante o API no disponible → el front usará fallback
+    return {
+      real: false,
+      error: err.response?.status === 403
+        ? 'El token de HubSpot no tiene el scope de Marketing Email (marketing-email). Agrégalo en la Private App.'
+        : (err.response?.data?.message || err.message),
+    };
+  }
+}
+
+/* ══════════════════════════════════════════════
+   LEAD NURTURING — Automation Workflows API
+   Requiere scope: automation
+══════════════════════════════════════════════ */
+export async function getNurturingWorkflows() {
+  try {
+    const data = await hsGet('/automation/v3/workflows');
+    const wf = data.workflows || data.results || [];
+    const rows = wf.map(w => ({
+      id: w.id,
+      name: w.name || '(sin nombre)',
+      enabled: w.enabled ?? w.isEnabled ?? false,
+      type: w.type || w.flowType || 'workflow',
+      enrolled:  w.contactCounts?.active     ?? w.stats?.enrolled  ?? 0,
+      completed: w.contactCounts?.completed  ?? w.stats?.completed ?? 0,
+    }));
+    return {
+      real: true,
+      count: rows.length,
+      active: rows.filter(r=>r.enabled).length,
+      workflows: rows.sort((a,b)=>(b.enrolled||0)-(a.enrolled||0)),
+    };
+  } catch (err) {
+    return {
+      real: false,
+      error: err.response?.status === 403
+        ? 'El token de HubSpot no tiene el scope de Automation. Agrégalo en la Private App.'
+        : (err.response?.data?.message || err.message),
+    };
+  }
+}

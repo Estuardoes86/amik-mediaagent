@@ -52,6 +52,8 @@ export const hubspotApi = {
   getFunnel:    (pipelineId)               => api.get('/hubspot/funnel',    { params:{ pipelineId } }),
   getContacts:  (daysBack=30)              => api.get('/hubspot/contacts',  { params:{ daysBack } }),
   getRecent:    ()                         => api.get('/hubspot/recent'),
+  getEmailStats:(daysBack=90)              => api.get('/hubspot/email-stats', { params:{ daysBack } }),
+  getNurturing: ()                         => api.get('/hubspot/nurturing'),
 };
 
 export const whatsappApi = {

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { hubspotApi } from '../lib/api.js';
 import { useApp } from '../context/AppContext.jsx';
+import EmailMarketing from './hubspot/EmailMarketing.jsx';
+import LeadNurturing from './hubspot/LeadNurturing.jsx';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, AreaChart, Area, CartesianGrid
@@ -245,6 +247,8 @@ export default function HubSpotPage() {
           {k:'sedes',    l:'📍 Sedes'    },
           {k:'asesores', l:'👤 Asesores' },
           {k:'canales',  l:'📡 Canales'  },
+          {k:'email',    l:'✉️ Email'     },
+          {k:'nurturing',l:'🔄 Nurturing' },
         ].map(t=><button key={t.k} onClick={()=>setTab(t.k)} style={tabStyle(t.k)}>{t.l}</button>)}
       </div>
 
@@ -819,6 +823,12 @@ export default function HubSpotPage() {
           </div>
         </Card>
       </>)}
+
+      {/* TAB EMAIL MARKETING */}
+      {tab==='email'&&<EmailMarketing/>}
+
+      {/* TAB LEAD NURTURING */}
+      {tab==='nurturing'&&<LeadNurturing/>}
     </div>
   );
 }

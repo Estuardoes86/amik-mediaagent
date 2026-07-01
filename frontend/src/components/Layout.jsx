@@ -24,9 +24,14 @@ const NAV_GROUPS = [
     ]
   },
   {
-    group: 'Orgánico & CRM',
+    group: 'Orgánico',
     items: [
       { path:'/social',    label:'Redes Soc.',   icon:'◈' },
+    ]
+  },
+  {
+    group: 'CRM & Email',
+    items: [
       { path:'/hubspot',   label:'HubSpot',      icon:'H' },
     ]
   },
@@ -180,7 +185,7 @@ export default function Layout() {
                 background: activeClient?.color || '#DCA145', flexShrink:0,
               }}/>
               {!collapsed && (
-                <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.9)', truncate:true, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                <span style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.9)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                   {activeClient?.name || 'Cliente'}
                 </span>
               )}

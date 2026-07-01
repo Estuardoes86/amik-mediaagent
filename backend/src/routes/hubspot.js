@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import {
   getPipelines, getAdmissionsFunnel, getContactsSummary,
-  getHubspotSummary, getRecentDeals, getOwners
+  getHubspotSummary, getRecentDeals, getOwners,
+  getEmailMarketingStats, getNurturingWorkflows
 } from '../services/hubspotService.js';
 
 export const hubspotRouter = Router();
@@ -51,5 +52,22 @@ hubspotRouter.get('/recent', async (req, res, next) => {
 hubspotRouter.get('/owners', async (req, res, next) => {
   try {
     res.json({ owners: await getOwners() });
+  } catch (err) { next(err); }
+});
+
+/* GET /api/hubspot/email-stats?daysBack=90 */
+hubspotRouter.get('/email-stats', async (req, res, next) => {
+  try {
+    const { daysBack = 90 } = req.query;
+    if (!process.env.HUBSPOT_API_KEY) return res.status(400).json({ error:'HUBSPOT_API_KEY not configured' });
+    res.json(await getEmailMarketingStats(parseInt(daysBack)));
+  } catch (err) { next(err); }
+});
+
+/* GET /api/hubspot/nurturing */
+hubspotRouter.get('/nurturing', async (req, res, next) => {
+  try {
+    if (!process.env.HUBSPOT_API_KEY) return res.status(400).json({ error:'HUBSPOT_API_KEY not configured' });
+    res.json(await getNurturingWorkflows());
   } catch (err) { next(err); }
 });
