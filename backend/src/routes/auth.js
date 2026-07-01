@@ -8,14 +8,17 @@ const client = new OAuth2Client(process.env.GOOGLE_OAUTH_CLIENT_ID);
 
 // Lista de emails autorizados
 // ── Configuración desde Railway env vars ──
-// ALLOWED_USERS = JSON array de objetos { email, clients } o { domain, clients }
-// Ejemplo: [{"email":"juan@upsjb.edu.pe","clients":["upsjb"]},{"domain":"upsjb.edu.pe","clients":["upsjb"]}]
+// ALLOWED_USERS = JSON array de objetos { email|domain, clients, role }
+// role: 'admin' (equipo AMIK, ve todo) | 'client' (solo su data, sin pestañas internas)
+// Si no se especifica role: los correos @amikgroup.com son 'admin', el resto 'client'.
+// Ejemplo: [{"email":"juan@upsjb.edu.pe","clients":["upsjb"],"role":"client"},{"domain":"amikgroup.com","clients":["upsjb","deco"],"role":"admin"}]
 const DEFAULT_USERS = [
-  { email: 'estuardo@amikgroup.com',             clients: ['upsjb','deco','espac','libra'] },
-  { email: 'estuardo.escobar.sabogal@gmail.com', clients: ['upsjb','deco','espac','libra'] },
-  { email: 'lucia@amikgroup.com',                clients: ['upsjb','deco','espac','libra'] },
-  { email: 'upsjbenlinea@gmail.com',             clients: ['upsjb'] },
-  { domain: 'upsjb.edu.pe',                      clients: ['upsjb'] },
+  { email: 'estuardo@amikgroup.com',             clients: ['upsjb','deco','espac','libra'], role:'admin' },
+  { email: 'e.escobar@amikgroup.com',            clients: ['upsjb','deco','espac','libra'], role:'admin' },
+  { email: 'estuardo.escobar.sabogal@gmail.com', clients: ['upsjb','deco','espac','libra'], role:'admin' },
+  { email: 'lucia@amikgroup.com',                clients: ['upsjb','deco','espac','libra'], role:'admin' },
+  { email: 'upsjbenlinea@gmail.com',             clients: ['upsjb'],                        role:'client' },
+  { domain: 'upsjb.edu.pe',                      clients: ['upsjb'],                        role:'client' },
 ];
 
 function getAllowedUsers() {
@@ -25,15 +28,22 @@ function getAllowedUsers() {
   return DEFAULT_USERS;
 }
 
+// Deriva el rol: usa el explícito; si no hay, admin para @amikgroup.com, client para el resto
+function deriveRole(entry, email) {
+  if (entry.role) return entry.role;
+  const domain = email.split('@')[1];
+  return domain === 'amikgroup.com' ? 'admin' : 'client';
+}
+
 function getAccessForEmail(email) {
   const users = getAllowedUsers();
   const domain = email.split('@')[1];
   // Buscar por email exacto primero
   const byEmail = users.find(u => u.email === email);
-  if (byEmail) return byEmail.clients;
+  if (byEmail) return { clients: byEmail.clients, role: deriveRole(byEmail, email) };
   // Luego por dominio
   const byDomain = users.find(u => u.domain === domain);
-  if (byDomain) return byDomain.clients;
+  if (byDomain) return { clients: byDomain.clients, role: deriveRole(byDomain, email) };
   return null;
 }
 
@@ -52,8 +62,8 @@ authRouter.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    const allowedClients = getAccessForEmail(email);
-    if (!allowedClients) {
+    const access = getAccessForEmail(email);
+    if (!access) {
       return res.status(403).json({ error: 'Acceso no autorizado. Contacta a AMIK GROUP.' });
     }
 
@@ -61,7 +71,8 @@ authRouter.post('/google', async (req, res) => {
       email,
       name: payload.name,
       picture: payload.picture,
-      clients: allowedClients,
+      clients: access.clients,
+      role: access.role,
     };
 
     const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' });

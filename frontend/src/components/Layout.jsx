@@ -70,6 +70,13 @@ export default function Layout() {
           dateMode, datePreset, setDatePreset,
           dateRange, applyDateRange, user, onLogout } = useApp();
 
+  // Rol: 'admin' (equipo AMIK) ve todo; 'client' ve solo su data sin pestañas internas
+  const isClient = user?.role === 'client';
+  const HIDDEN_FOR_CLIENT = ['/audit', '/settings', '/ai'];
+  const visibleGroups = NAV_GROUPS
+    .map(g => ({ ...g, items: g.items.filter(i => !isClient || !HIDDEN_FOR_CLIENT.includes(i.path)) }))
+    .filter(g => g.items.length > 0);
+
   const [collapsed,      setCollapsed]      = useState(false);
   const [showClients,    setShowClients]    = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -166,15 +173,15 @@ export default function Layout() {
           )}
         </div>
 
-        {/* Selector de cliente */}
+        {/* Selector de cliente (dropdown solo si hay más de uno) */}
         <div ref={clientRef} style={{ padding: collapsed ? '12px 8px' : '12px 12px', borderBottom:'1px solid var(--sidebar-border)', position:'relative' }}>
-          <button onClick={() => setShowClients(v => !v)}
+          <button onClick={() => clients.length > 1 && setShowClients(v => !v)}
             style={{
               width:'100%', display:'flex', alignItems:'center', gap:8,
               padding: collapsed ? '8px 0' : '8px 10px',
               background:'rgba(255,255,255,0.07)', borderRadius:8,
               border:'1px solid rgba(255,255,255,0.1)',
-              cursor:'pointer', transition:'all 0.12s',
+              cursor: clients.length > 1 ? 'pointer' : 'default', transition:'all 0.12s',
               justifyContent: collapsed ? 'center' : 'space-between',
             }}
             title={collapsed ? activeClient?.name : undefined}
@@ -190,10 +197,10 @@ export default function Layout() {
                 </span>
               )}
             </div>
-            {!collapsed && <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', flexShrink:0 }}>▾</span>}
+            {!collapsed && clients.length > 1 && <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', flexShrink:0 }}>▾</span>}
           </button>
 
-          {showClients && (
+          {showClients && clients.length > 1 && (
             <div style={{
               position:'absolute', top:'calc(100% + 4px)',
               left: collapsed ? 64 : 12, right: collapsed ? 'auto' : 12,
@@ -229,7 +236,7 @@ export default function Layout() {
 
         {/* Nav groups */}
         <nav style={{ flex:1, overflowY:'auto', padding: collapsed ? '8px 0' : '8px 0', overflowX:'hidden' }}>
-          {NAV_GROUPS.map(group => (
+          {visibleGroups.map(group => (
             <div key={group.group} style={{ marginBottom: collapsed ? 0 : 4 }}>
               {!collapsed && (
                 <div style={{
@@ -296,8 +303,8 @@ export default function Layout() {
                 <div style={{ fontSize:12, fontWeight:600, color:'rgba(255,255,255,0.85)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                   {user?.name || user?.email?.split('@')[0] || 'Usuario'}
                 </div>
-                <div style={{ fontSize:10, color:'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                  {user?.email || ''}
+                <div style={{ fontSize:10, color: isClient ? '#DCA145' : 'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight: isClient ? 700 : 400 }}>
+                  {isClient ? 'CLIENTE' : (user?.email || '')}
                 </div>
               </div>
               <button onClick={onLogout}
