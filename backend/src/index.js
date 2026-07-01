@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { metaRouter }      from './routes/meta.js';
+import { socialRouter }  from './routes/social.js';
 import { authRouter }      from './routes/auth.js';
 import { whatsappRouter }  from './routes/whatsapp.js';
 import { googleRouter }    from './routes/google.js';
@@ -35,6 +36,7 @@ app.get('/health', (req, res) => res.json({
 
 app.use('/api/auth',     authRouter);
 app.use('/api/meta',     authMiddleware, metaRouter);
+app.use('/api/social',   authMiddleware, socialRouter);
 app.use('/api/google',   authMiddleware, googleRouter);
 app.use('/api/ai',       authMiddleware, aiRouter);
 app.use('/api/audit',    authMiddleware, auditRouter);

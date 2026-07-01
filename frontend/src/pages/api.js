@@ -50,4 +50,12 @@ export const reportsApi = {
   list:     ()        => api.get('/reports/list')
 };
 
+export const socialApi = {
+  getAll:       () => api.get('/social/all'),
+  getFacebook:  () => api.get('/social/facebook'),
+  getInstagram: () => api.get('/social/instagram'),
+  getYouTube:   () => api.get('/social/youtube'),
+  clearCache:   () => api.delete('/social/cache'),
+};
+
 export default api;

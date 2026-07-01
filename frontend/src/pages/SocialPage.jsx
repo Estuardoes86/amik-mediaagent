@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { socialApi } from './api.js';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, RadarChart, Radar,
@@ -188,7 +189,8 @@ export default function SocialPage(){
   const[metricT, setMetricT] =useState('alc');
   const[periodoT,setPeriodoT]=useState('mes');
   const[compMetric,setCompMetric]=useState('alc');
-  const d=DEMO[active], pal=P[active], score=calcScore(d);
+  // d y esReal ya definidos arriba
+  const pal=P[active], score=d?calcScore(d):0;
 
   const ranking=useMemo(()=>
     Object.entries(DEMO)
@@ -248,6 +250,60 @@ export default function SocialPage(){
     {metric:'Audiencia PE',...Object.fromEntries(Object.entries(DEMO).map(([k,v])=>[k,v.audiencia[0].pct]))},
   ];
 
+  // ── Datos reales desde API (con fallback a DEMO) ──
+  const [apiData,   setApiData]  = useState(null);
+  const [apiLoading,setApiLoading]=useState(true);
+  const [apiError,  setApiError] = useState(null);
+
+  useEffect(()=>{
+    setApiLoading(true);
+    socialApi.getAll()
+      .then(res=>{
+        // Merge: si la plataforma tiene error usa DEMO, sino usa real
+        const merged = {};
+        for(const k of ['facebook','instagram','youtube']){
+          const real = res.data[k];
+          if(real && !real.error && real.seguidores){
+            // Normalizar campos para que coincidan con la estructura DEMO
+            merged[k] = {
+              ...DEMO[k],           // mantiene tendencia/audiencia demo
+              seguidores:      real.seguidores      ?? DEMO[k].seguidores,
+              seguidoresDelta: real.seguidoresDelta ?? DEMO[k].seguidoresDelta,
+              alcance:         real.alcance         ?? DEMO[k].alcance,
+              impresiones:     real.impresiones     ?? DEMO[k].impresiones,
+              engagement:      real.engagement      ?? DEMO[k].engagement,
+              posts:           real.posts           ?? DEMO[k].posts,
+              mejorPost:       real.mejorPost ? {
+                tipo:    real.mejorPost.tipo   || 'Post',
+                fecha:   real.mejorPost.fecha  || '',
+                alcance: real.mejorPost.alcance|| 0,
+                eng:     real.mejorPost.eng    || 0,
+                texto:   real.mejorPost.texto  || '',
+              } : DEMO[k].mejorPost,
+              peorPost: real.peorPost ? {
+                tipo:    real.peorPost.tipo   || 'Post',
+                fecha:   real.peorPost.fecha  || '',
+                alcance: real.peorPost.alcance|| 0,
+                eng:     real.peorPost.eng    || 0,
+                texto:   real.peorPost.texto  || '',
+              } : DEMO[k].peorPost,
+              _esReal: true,
+            };
+          } else {
+            merged[k] = { ...DEMO[k], _esReal: false };
+          }
+        }
+        setApiData(merged);
+        setApiError(null);
+      })
+      .catch(err=>{ setApiError(err.message); })
+      .finally(()=>setApiLoading(false));
+  },[]);
+
+  // Usar datos reales si están disponibles, sino DEMO
+  const DATA = apiData || DEMO;
+  const d = DATA[active], esReal = d?._esReal;
+
   return(
     <div className="page-wrap scroll-y">
 
@@ -261,7 +317,9 @@ export default function SocialPage(){
           <p className="page-sub">Facebook · Instagram · YouTube — comparativos temporales</p>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <span style={{fontSize:11,color:'var(--text4)',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo — conectar API</span>
+          {apiLoading && <span style={{fontSize:11,color:'var(--text4)',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 10px'}}>⟳ Cargando datos...</span>}
+          {!apiLoading && esReal  && <span style={{fontSize:11,color:'#059669',background:'#ECFDF5',border:'1px solid #A7F3D0',borderRadius:6,padding:'4px 10px'}}>● Datos en tiempo real</span>}
+          {!apiLoading && !esReal && <span style={{fontSize:11,color:'var(--gold)',background:'var(--gold-dim)',border:'1px solid var(--gold-border)',borderRadius:6,padding:'4px 10px'}}>⚡ Demo — API pendiente</span>}
           <button className="btn btn-ghost btn-sm">↗ Metricool</button>
         </div>
       </div>
