@@ -114,40 +114,50 @@ export default function MetaPage() {
   /* ── By programa (from campaign names) ── */
   // extractPrograma — uses backend field if available, fallback to frontend
   const extractPrograma = (c) => {
-    if (c.programa && c.programa.carrera) return c.programa;
+    if (c.programa && c.programa.carrera) return c.programa; // backend ya incluye sede
     const n = (c.name||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     const isWA = n.includes('WHATSAPP');
-    if (n.includes('WHATSAPP MEDICINA')||n.includes('MEDICINA HUMANA')) return { carrera:'Medicina Humana', isWA };
-    if (n.includes('VETERINARIA'))   return { carrera:'Medicina Veterinaria y Zootecnia', isWA };
-    if (n.includes('ENFERMERIA'))    return { carrera:'Enfermería', isWA };
-    if (n.includes('PSICOLOGIA'))    return { carrera:'Psicología', isWA };
-    if (n.includes('TERAPIA'))       return { carrera:'Terapia Física y Rehabilitación', isWA };
-    if (n.includes('LABORATORIO'))   return { carrera:'Laboratorio Clínico', isWA };
-    if (n.includes('DERECHO'))       return { carrera:'Derecho', isWA };
-    if (n.includes('CONTABILIDAD'))  return { carrera:'Contabilidad', isWA };
-    if (n.includes('ESTOMATOLOGIA')) return { carrera:'Estomatología', isWA };
-    if (n.includes('AGROINDUSTRIAL'))return { carrera:'Ingeniería Agroindustrial', isWA };
-    if (n.includes('CIVIL'))         return { carrera:'Ingeniería Civil', isWA };
-    if (n.includes('SISTEMAS'))      return { carrera:'Ingeniería de Sistemas', isWA };
-    if (n.includes('ENOLOGIA'))      return { carrera:'Ingeniería en Enología y Viticultura', isWA };
-    if (n.includes('TURISMO')||n.includes('HOTELERIA')) return { carrera:'Turismo, Hotelería y Gastronomía', isWA };
-    if (n.includes('ADMINISTRACION MARKETING')||n.includes('ADMIN MARKETING')) return { carrera:'Administración y Marketing', isWA };
-    if (n.includes('NEGOCIOS'))      return { carrera:'Administración y Negocios Int.', isWA };
-    if (n.includes('ADMINISTRACION')||n.includes('ADMIN')) return { carrera:'Administración de Empresas', isWA };
-    return { carrera:'Otros', isWA };
+    // Detectar sede
+    let sede = 'Presencial';
+    if      (n.includes('DISTANCIA') || n.includes('VIRTUAL'))          sede = 'A Distancia';
+    else if (n.includes('CHORRILLOS'))                                   sede = 'Chorrillos';
+    else if (n.includes('SAN BORJA') || n.includes('SANBORJA'))         sede = 'San Borja';
+    else if (/ ICA( |$)/.test(n))                                        sede = 'Ica';
+    else if (n.includes('CHINCHA'))                                      sede = 'Chincha';
+    // Detectar carrera
+    if (n.includes('WHATSAPP MEDICINA')||n.includes('MEDICINA HUMANA')) return { carrera:'Medicina Humana', sede, isWA };
+    if (n.includes('VETERINARIA'))   return { carrera:'Medicina Veterinaria y Zootecnia', sede, isWA };
+    if (n.includes('ENFERMERIA'))    return { carrera:'Enfermería', sede, isWA };
+    if (n.includes('PSICOLOGIA'))    return { carrera:'Psicología', sede, isWA };
+    if (n.includes('TERAPIA'))       return { carrera:'Terapia Física y Rehabilitación', sede, isWA };
+    if (n.includes('LABORATORIO'))   return { carrera:'Laboratorio Clínico', sede, isWA };
+    if (n.includes('DERECHO'))       return { carrera:'Derecho', sede, isWA };
+    if (n.includes('CONTABILIDAD'))  return { carrera:'Contabilidad', sede, isWA };
+    if (n.includes('ESTOMATOLOGIA')) return { carrera:'Estomatología', sede, isWA };
+    if (n.includes('AGROINDUSTRIAL'))return { carrera:'Ingeniería Agroindustrial', sede, isWA };
+    if (n.includes('CIVIL'))         return { carrera:'Ingeniería Civil', sede, isWA };
+    if (n.includes('SISTEMAS'))      return { carrera:'Ingeniería de Sistemas', sede, isWA };
+    if (n.includes('ENOLOGIA'))      return { carrera:'Ingeniería en Enología y Viticultura', sede, isWA };
+    if (n.includes('TURISMO')||n.includes('HOTELERIA')) return { carrera:'Turismo, Hotelería y Gastronomía', sede, isWA };
+    if (n.includes('ADMINISTRACION MARKETING')||n.includes('ADMIN MARKETING')) return { carrera:'Administración y Marketing', sede, isWA };
+    if (n.includes('NEGOCIOS'))      return { carrera:'Administración y Negocios Int.', sede, isWA };
+    if (n.includes('ADMINISTRACION')||n.includes('ADMIN')) return { carrera:'Administración de Empresas', sede, isWA };
+    return { carrera:'Otros', sede, isWA };
   };
 
   const byPrograma = useMemo(()=>{
     const map = {};
     for (const c of campaigns) {
-      const { carrera, isWA: campIsWA } = extractPrograma(c);
-      if (!map[carrera]) map[carrera]={ prog:carrera, leadsForm:0, spendForm:0, leadsWA:0, spendWA:0 };
+      const { carrera, sede = 'Presencial', isWA: campIsWA } = extractPrograma(c);
+      // Clave única: carrera + sede — separa presencial de A Distancia
+      const key = `${carrera}||${sede}`;
+      if (!map[key]) map[key]={ prog:carrera, sede, leadsForm:0, spendForm:0, leadsWA:0, spendWA:0 };
       if (isWACamp(c)) {
-        map[carrera].leadsWA  += getWA(c)||0;
-        map[carrera].spendWA  += getSpend(c);
+        map[key].leadsWA  += getWA(c)||0;
+        map[key].spendWA  += getSpend(c);
       } else {
-        map[carrera].leadsForm += getLeads(c);
-        map[carrera].spendForm += getSpend(c);
+        map[key].leadsForm += getLeads(c);
+        map[key].spendForm += getSpend(c);
       }
     }
     return Object.values(map).map(p=>({
@@ -563,6 +573,7 @@ export default function MetaPage() {
             <thead>
               <tr>
                 <th style={{ textAlign:'left' }}>PROGRAMA</th>
+                <th style={{ textAlign:'left' }}>SEDE</th>
                 <th style={{ textAlign:'right', color:'var(--blue)' }}>LEADS FORM.</th>
                 <th style={{ textAlign:'right', color:'var(--blue)' }}>INV. FORM.</th>
                 <th style={{ textAlign:'right', color:'var(--blue)' }}>CPL FORM.</th>
@@ -580,9 +591,11 @@ export default function MetaPage() {
                 const cplWN=parseFloat(p.cplWA)||0;
                 const eff=!p.cplTotal?'Sin datos':cplN<15?'Excelente':cplN<30?'Bueno':cplN<50?'Regular':'Revisar';
                 const effC=!p.cplTotal?'tag-gray':cplN<15?'tag-green':cplN<30?'tag-gold':cplN<50?'tag-yellow':'tag-red';
+                const sedeColor=p.sede==='A Distancia'?'tag-gold':p.sede==='Presencial'?'tag-blue':'tag-gray';
                 return (
                   <tr key={i}>
                     <td style={{ fontWeight:600, color:'var(--text)', minWidth:180 }}>{p.prog}</td>
+                    <td><span className={`tag ${sedeColor}`} style={{ fontSize:10 }}>{p.sede||'Presencial'}</span></td>
                     <td style={{ textAlign:'right', color:'var(--blue)', fontWeight:600 }}>{p.leadsForm>0?p.leadsForm.toLocaleString():'—'}</td>
                     <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontSize:12 }}>{p.spendForm>0?`S/ ${fmt(p.spendForm)}`:'—'}</td>
                     <td style={{ textAlign:'right' }}>
@@ -602,6 +615,7 @@ export default function MetaPage() {
             <tfoot>
               <tr style={{ background:'var(--bg3)', borderTop:'2px solid var(--border)' }}>
                 <td style={{ fontWeight:700, color:'var(--gold)', fontFamily:'var(--font-tight)', fontSize:12 }}>TOTAL</td>
+                <td/>
                 <td style={{ textAlign:'right', fontWeight:700, color:'var(--blue)' }}>{byPrograma.reduce((s,p)=>s+p.leadsForm,0).toLocaleString()}</td>
                 <td style={{ textAlign:'right', fontFamily:'var(--mono)', fontWeight:600 }}>S/ {fmt(byPrograma.reduce((s,p)=>s+p.spendForm,0))}</td>
                 <td style={{ textAlign:'right', fontWeight:600 }}>
