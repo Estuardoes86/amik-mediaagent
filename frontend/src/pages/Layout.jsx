@@ -13,6 +13,7 @@ const TABS = [
   { path:'/audit',      label:'Audit'       },
   { path:'/ai',         label:'IA Copiloto' },
   { path:'/reports',    label:'Reportes'    },
+  { path:'/social',     label:'Redes Org.'  },
   { path:'/settings',   label:'Config'      },
 ];
 

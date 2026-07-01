@@ -15,6 +15,7 @@ import AuditPage         from './pages/AuditPage.jsx';
 import AiPage            from './pages/AiPage.jsx';
 import ReportsPage       from './pages/ReportsPage.jsx';
 import SettingsPage      from './pages/SettingsPage.jsx';
+import SocialPage       from './pages/SocialPage.jsx';
 import axios from 'axios';
 import './index.css';
 
@@ -86,6 +87,7 @@ export default function App() {
           <Route path="ai"         element={<AiPage />} />
           <Route path="reports"    element={<ReportsPage />} />
           <Route path="settings"   element={<SettingsPage />} />
+          <Route path="social"     element={<SocialPage />} />
         </Route>
       </Routes>
       <ToastContainer />
