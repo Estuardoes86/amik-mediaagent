@@ -7,9 +7,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Forzar nuevo hash en cada build
-        entryFileNames: `assets/[name]-[hash]-v2.js`,
-        chunkFileNames: `assets/[name]-[hash]-v2.js`,
-        assetFileNames: `assets/[name]-[hash]-v2.[ext]`,
+        entryFileNames: `assets/[name]-[hash]-v1782936250.js`,
+        chunkFileNames: `assets/[name]-[hash]-v1782936250.js`,
+        assetFileNames: `assets/[name]-[hash]-v1782936250.[ext]`,
       }
     }
   },
