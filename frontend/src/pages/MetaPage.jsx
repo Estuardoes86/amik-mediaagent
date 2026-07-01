@@ -28,8 +28,10 @@ const getReach  = c => i((c.metrics||c).reach||0);
 const getCtr    = c => parseFloat((c.metrics||c).ctr||0);
 const getCpm    = c => parseFloat((c.metrics||c).cpm||0);
 const getFreq   = c => { const m=c.metrics||c; const r=i(m.reach||0),imp=i(m.impressions||0); return r>0?imp/r:0; };
-const isWACamp  = c => (c.name||'').toUpperCase().includes('WHATSAPP');
-const isFormCamp = c => (c.name||'').toUpperCase().includes('FORM');
+// Clasificación FORM vs CTWA: CTWA = tiene WHATSAPP en el nombre (Click to WhatsApp)
+// FORM = todo lo demás (Lead Ads, AON_VIDEOS, LINK_ADS, etc.)
+const isWACamp   = c => (c.name||'').toUpperCase().includes('WHATSAPP');
+const isFormCamp = c => !isWACamp(c);
 
 /* ── Tooltip ── */
 const Tip = ({ active, payload, label }) => {
@@ -505,9 +507,9 @@ export default function MetaPage() {
           <div style={{ padding:'12px 16px', borderTop:'1px solid var(--border)', background:'var(--bg3)', display:'flex', gap:24, fontSize:12, color:'var(--text3)', flexWrap:'wrap' }}>
             <span>{filteredCamps.length} campañas</span>
             <span>Inversión: <strong>S/ {fmt(filteredCamps.reduce((s,c)=>s+getSpend(c),0))}</strong></span>
-            <span>Leads: <strong style={{color:'var(--green)'}}>{filteredCamps.reduce((s,c)=>s+getLeads(c),0)}</strong></span>
-            <span>WA: <strong style={{color:'var(--green)'}}>{filteredCamps.reduce((s,c)=>s+getWA(c),0)}</strong></span>
-            <span>CPL prom: <strong>{(()=>{const tl=filteredCamps.reduce((s,c)=>s+getLeads(c),0),ts=filteredCamps.reduce((s,c)=>s+getSpend(c),0);return tl>0?`S/ ${(ts/tl).toFixed(2)}`:'—';})()}</strong></span>
+            <span>Leads FORM: <strong style={{color:'var(--blue)'}}>{filteredCamps.filter(c=>!isWACamp(c)).reduce((s,c)=>s+getLeads(c),0)}</strong></span>
+            <span>Conv. WA: <strong style={{color:'var(--green)'}}>{filteredCamps.filter(c=>isWACamp(c)).reduce((s,c)=>s+getWA(c),0)}</strong></span>
+            <span>CPL Form: <strong>{(()=>{const fc=filteredCamps.filter(c=>!isWACamp(c));const tl=fc.reduce((s,c)=>s+getLeads(c),0),ts=fc.reduce((s,c)=>s+getSpend(c),0);return tl>0?`S/ ${(ts/tl).toFixed(2)}`:'—';})()}</strong></span>
           </div>
         </div>
       </>)}

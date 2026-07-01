@@ -43,7 +43,7 @@ export async function getCampaigns(accountId) {
 
 export async function getCampaignInsights(accountId, datePreset = 'last_30d', since, until) {
   const data = await metaGet(`${accountId}/insights`, {
-    fields: 'campaign_id,campaign_name,impressions,clicks,spend,actions,cost_per_action_type,ctr,cpm,reach,frequency,unique_clicks,unique_ctr',
+    fields: 'campaign_id,campaign_name,impressions,clicks,inline_link_clicks,spend,actions,cost_per_action_type,ctr,cpm,reach,frequency,unique_clicks,unique_ctr',
     ...dateParams(datePreset, since, until),
     level: 'campaign',
     limit: 100
@@ -103,7 +103,7 @@ export function aggregateInsights(insights) {
       for (const a of row.actions) {
         if (a.action_type === 'lead')                           totals.leads    += parseInt(a.value||0);
         if (a.action_type === 'purchase')                       totals.purchases+= parseInt(a.value||0);
-        if (a.action_type?.includes('messaging_conversation'))  totals.waConv   += parseInt(a.value||0);
+        if (a.action_type === 'onsite_conversion.total_messaging_connection')  totals.waConv   += parseInt(a.value||0);
       }
     }
   }
