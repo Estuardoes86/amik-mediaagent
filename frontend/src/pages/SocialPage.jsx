@@ -51,8 +51,8 @@ const DEMO_DATA = {
     peorPost: {tipo:'Imagen',fecha:'4 Jun',alcance:1820,eng:0.9,texto:'Horario de atención'},
   },
   instagram:{
-    seguidores:24180, seguidoresDelta:891,
-    alcance:198000, impresiones:442000, engagement:6.8, posts:24,
+    seguidores:21760, seguidoresDelta:0,
+    alcance:3264, impresiones:7615, engagement:1.4, posts:20,
     mensual:[
       {mes:'Jun 25',seg:18200,alc:110000,imp:248000,eng:5.8,posts:20,likes:6380,comentarios:820,shares:1240},
       {mes:'Jul 25',seg:19100,alc:124000,imp:278000,eng:6.0,posts:22,likes:7020,comentarios:900,shares:1360},
