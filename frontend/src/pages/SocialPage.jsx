@@ -12,8 +12,8 @@ import {
    FB · IG · YT — comparativos temporales
 ══════════════════════════════════════════════ */
 
-const P = {
-  facebook:  { color:'#1877F2', bg:'#EFF6FF', label:'Facebook',  icon:'F'  },
+const PLAT = {
+  facebook:  { color:'#1877F2', bg:'#EFF6FF', label:'Facebook',  icon:'FB' },
   instagram: { color:'#E1306C', bg:'#FFF0F5', label:'Instagram', icon:'IG' },
   youtube:   { color:'#FF0000', bg:'#FFF5F5', label:'YouTube',   icon:'YT' },
   tiktok:    { color:'#010101', bg:'#F5F5F5', label:'TikTok',    icon:'TK' },
@@ -190,11 +190,11 @@ export default function SocialPage(){
   const[periodoT,setPeriodoT]=useState('mes');
   const[compMetric,setCompMetric]=useState('alc');
   // d y esReal ya definidos arriba
-  const pal=P[active], score=d?calcScore(d):0;
+  const pal=PLAT[active], score=d?calcScore(d):0;
 
   const ranking=useMemo(()=>
     Object.entries(DEMO)
-      .map(([k,v])=>({key:k,label:P[k].label,color:P[k].color,score:calcScore(v),eng:v.engagement,seg:v.seguidores,delta:v.seguidoresDelta}))
+      .map(([k,v])=>({key:k,label:PLAT[k].label,color:PLAT[k].color,score:calcScore(v),eng:v.engagement,seg:v.seguidores,delta:v.seguidoresDelta}))
       .sort((a,b)=>b.score-a.score)
   ,[]);
 
@@ -336,7 +336,7 @@ export default function SocialPage(){
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
             {ranking.map((r,i)=>(
               <div key={r.key} onClick={()=>setActive(r.key)}
-                style={{background:active===r.key?P[r.key].bg:'var(--bg3)',
+                style={{background:active===r.key?PLAT[r.key].bg:'var(--bg3)',
                   border:`2px solid ${active===r.key?r.color:'var(--border)'}`,
                   borderRadius:12,padding:'16px 20px',cursor:'pointer',transition:'all .15s',
                   display:'flex',alignItems:'center',gap:16}}>
@@ -362,7 +362,7 @@ export default function SocialPage(){
 
       {/* ── Selector de plataforma activa ── */}
       <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
-        {Object.entries(P).filter(([k])=>DEMO[k]).map(([k,v])=>(
+        {Object.entries(PLAT).filter(([k])=>DEMO[k]).map(([k,v])=>(
           <button key={k} onClick={()=>setActive(k)}
             className={`btn btn-ghost btn-sm`}
             style={{borderColor:active===k?v.color:'var(--border)',
@@ -651,7 +651,7 @@ export default function SocialPage(){
               <RadarChart data={radarData} margin={{top:10,right:30,bottom:10,left:30}}>
                 <PolarGrid stroke="var(--border)"/>
                 <PolarAngleAxis dataKey="metric" tick={{fontSize:11,fill:'var(--text3)'}}/>
-                {Object.entries(P).filter(([k])=>DEMO[k]).map(([k,v])=>(
+                {Object.entries(PLAT).filter(([k])=>DEMO[k]).map(([k,v])=>(
                   <Radar key={k} name={v.label} dataKey={k} stroke={v.color} fill={v.color} fillOpacity={.08} strokeWidth={2}/>
                 ))}
                 <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:11}}/>
@@ -668,13 +668,13 @@ export default function SocialPage(){
           {key:'tiktok',  msg:'API orgánica requiere cuenta Business verificada.'},
           {key:'linkedin',msg:'API requiere OAuth con permisos r_organization_social.'},
         ].map(({key,msg})=>(
-          <div key={key} className="card" style={{borderTop:`3px solid ${P[key].color}`,opacity:.7}}>
+          <div key={key} className="card" style={{borderTop:`3px solid ${PLAT[key].color}`,opacity:.7}}>
             <div className="card-body" style={{padding:'16px 20px',display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:36,height:36,borderRadius:8,background:P[key].bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:P[key].color,flexShrink:0}}>
-                {P[key].icon}
+              <div style={{width:36,height:36,borderRadius:8,background:PLAT[key].bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:PLAT[key].color,flexShrink:0}}>
+                {PLAT[key].icon}
               </div>
               <div>
-                <div style={{fontWeight:700,color:'var(--text)',fontSize:13,marginBottom:3}}>{P[key].label} — Pendiente conexión</div>
+                <div style={{fontWeight:700,color:'var(--text)',fontSize:13,marginBottom:3}}>{PLAT[key].label} — Pendiente conexión</div>
                 <div style={{fontSize:11,color:'var(--text4)'}}>{msg}</div>
               </div>
             </div>
