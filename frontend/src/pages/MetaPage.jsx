@@ -139,8 +139,8 @@ export default function MetaPage() {
     if (n.includes('SISTEMAS'))      return { carrera:'Ingeniería de Sistemas', sede, isWA };
     if (n.includes('ENOLOGIA'))      return { carrera:'Ingeniería en Enología y Viticultura', sede, isWA };
     if (n.includes('TURISMO')||n.includes('HOTELERIA')) return { carrera:'Turismo, Hotelería y Gastronomía', sede, isWA };
-    if (n.includes('ADMINISTRACION MARKETING')||n.includes('ADMIN MARKETING')) return { carrera:'Administración y Marketing', sede, isWA };
-    if (n.includes('NEGOCIOS'))      return { carrera:'Administración y Negocios Int.', sede, isWA };
+    if (n.includes('ADMINISTRACION MARKETING')||n.includes('ADMIN MARKETING')||n.includes('ADMINISTRACION_MARKETING')||n.includes('ADMIN_MARKETING')) return { carrera:'Administración y Marketing', sede, isWA };
+    if (n.includes('NEGOCIOS INTERNACIONALES')||n.includes('NEGOCIOS_INTERNACIONALES')||n.includes('ADMIN_NEGOCIOS')||n.includes('NEGOCIOS INT')||n.includes('NEGOCIOS_INT')||n.includes('NEGOCIOS')) return { carrera:'Administración y Negocios Int.', sede, isWA };
     if (n.includes('ADMINISTRACION')||n.includes('ADMIN')) return { carrera:'Administración de Empresas', sede, isWA };
     return { carrera:'Otros', sede, isWA };
   };

@@ -154,8 +154,8 @@ export function extractPrograma(campaignName) {
     ['Terapia Física y Rehabilitación',       ['TERAPIA FISICA','TERAPIA']],
     ['Laboratorio Clínico',                   ['LABORATORIO']],
     ['Turismo, Hotelería y Gastronomía',      ['TURISMO','HOTELERIA','GASTRONOMIA']],
-    ['Administración y Marketing',            ['ADMINISTRACION MARKETING','ADMIN MARKETING','ADMINISTRACIÓN MARKETING']],
-    ['Administración y Negocios Int.',        ['NEGOCIOS INTERNACIONALES','NEGOCIOS INT','ADMINISTRACION NEGOCIOS']],
+    ['Administración y Marketing',            ['ADMINISTRACION MARKETING','ADMIN MARKETING','ADMINISTRACIÓN MARKETING','ADMINISTRACION_MARKETING','ADMIN_MARKETING']],
+    ['Administración y Negocios Int.',        ['NEGOCIOS INTERNACIONALES','NEGOCIOS_INTERNACIONALES','NEGOCIOS INT','NEGOCIOS_INT','ADMINISTRACION NEGOCIOS','ADMIN_NEGOCIOS']],
     ['Administración de Empresas',            ['ADMINISTRACION','ADMIN']],
     ['Medicina (WA)',                         ['WHATSAPP MEDICINA']],
   ];
