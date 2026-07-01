@@ -189,8 +189,7 @@ export default function SocialPage(){
   const[metricT, setMetricT] =useState('alc');
   const[periodoT,setPeriodoT]=useState('mes');
   const[compMetric,setCompMetric]=useState('alc');
-  // d y esReal ya definidos arriba
-  const pal=PLAT[active], score=d?calcScore(d):0;
+
 
   const ranking=useMemo(()=>
     Object.entries(DEMO)
@@ -198,11 +197,7 @@ export default function SocialPage(){
       .sort((a,b)=>b.score-a.score)
   ,[]);
 
-  // ── Datos según período seleccionado ──
-  const mesActual  =d.mensual[d.mensual.length-1];
-  const mesAnterior=d.mensual[d.mensual.length-2];
-  const mesAnioAnt =d.mensual[0]; // Jun 25
-  const ytdMeses   =d.mensual.slice(6); // Ene–Jun 26
+  // mesActual etc. definidos abajo tras d
 
   // Comparativo mes vs mes anterior — tarjetas
   const METRICAS_COMP=[
@@ -216,9 +211,7 @@ export default function SocialPage(){
     {k:'shares',l:'Compartidos', icon:'↗️', fmt:fmtK},
   ];
 
-  // Datos para gráfico de comparativo anual (mes a mes)
-  const anoActual =d.mensual.slice(6);   // Ene–Jun 26
-  const anoAnterior=d.mensual.slice(0,6); // Jun–Nov 25 (aproximado como Ene–Jun 25)
+  // anoActual etc. definidos abajo tras d
   const compAnualData=anoActual.map((m,i)=>({
     mes: m.mes,
     actual: m[compMetric]||0,
@@ -303,6 +296,15 @@ export default function SocialPage(){
   // Usar datos reales si están disponibles, sino DEMO
   const DATA = apiData || DEMO;
   const d = DATA[active], esReal = d?._esReal;
+  const pal = PLAT[active], score = d ? calcScore(d) : 0;
+
+  // ── Datos según período (dependen de d) ──
+  const mesActual   = d?.mensual?.[d.mensual.length-1] || {};
+  const mesAnterior = d?.mensual?.[d.mensual.length-2] || {};
+  const mesAnioAnt  = d?.mensual?.[0] || {};
+  const ytdMeses    = d?.mensual?.slice(6) || [];
+  const anoActual   = d?.mensual?.slice(6) || [];
+  const anoAnterior = d?.mensual?.slice(0,6) || [];
 
   return(
     <div className="page-wrap scroll-y">
