@@ -197,3 +197,9 @@ export function extractPrograma(campaignName) {
 }
 
 export { cache };
+
+export function clearMetaCache() {
+  const keys = cache.keys();
+  cache.flushAll();
+  return keys.length;
+}

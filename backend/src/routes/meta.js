@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  getAdAccounts, getCampaigns, getCampaignInsights, getAccountReach,
+  getAdAccounts, getCampaigns, getCampaignInsights, getAccountReach, clearMetaCache,
   getAdSetInsights, getPixels, getCreativeInsights,
   getDailyInsights, aggregateInsights, extractPrograma
 } from '../services/metaService.js';
@@ -80,4 +80,10 @@ metaRouter.get('/daily', async (req, res, next) => {
     const daily = await getDailyInsights(accountId, datePreset, since, until);
     res.json({ daily });
   } catch (err) { next(err); }
+});
+
+// DELETE /api/meta/cache — limpia el cache para forzar datos frescos
+metaRouter.delete('/cache', (req, res) => {
+  const cleared = clearMetaCache();
+  res.json({ ok: true, cleared });
 });
