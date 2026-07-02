@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { socialApi } from './api.js';
+import PublicacionesRedes from './social/PublicacionesRedes.jsx';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, RadarChart, Radar,
@@ -184,6 +185,7 @@ const PERIODOS = [
   {key:'anio',   label:'Año anterior'},
   {key:'semanas',label:'Últimas 4 semanas'},
   {key:'ytd',    label:'Acumulado YTD'},
+  {key:'publicaciones', label:'📋 Publicaciones'},
 ];
 
 const METRICAS_COMP = [
@@ -647,6 +649,8 @@ export default function SocialPage() {
           </div>
         </div>
       </div>
+
+      {periodoKey === 'publicaciones' && <PublicacionesRedes/>}
 
     </div>
   );

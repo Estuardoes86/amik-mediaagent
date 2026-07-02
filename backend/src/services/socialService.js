@@ -87,6 +87,7 @@ export async function getFacebookInsights() {
     impresiones:      talkingAbout * 25,
     engagement:       seguidores > 0 ? parseFloat(((talkingAbout / seguidores) * 100).toFixed(1)) : 0,
     posts:            postsData.length,
+    publicaciones:    postsData,
     mejorPost:        postsData[0] || null,
     peorPost:         postsData[postsData.length - 1] || null,
   };
@@ -137,6 +138,7 @@ export async function getInstagramInsights() {
     impresiones:      seguidores * 0.35 | 0,
     engagement,
     posts:            mediaData.length,
+    publicaciones:    mediaData,
     mejorPost:        mediaData[0] || null,
     peorPost:         mediaData[mediaData.length - 1] || null,
   };
@@ -217,6 +219,7 @@ export async function getYouTubeInsights() {
     impresiones: totalViews,
     engagement,
     posts:       Math.min(totalVideos, 20),
+    publicaciones: videoStats,
     mejorPost:   videoStats[0]   || null,
     peorPost:    videoStats[videoStats.length - 1] || null,
   };
