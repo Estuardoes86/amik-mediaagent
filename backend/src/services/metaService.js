@@ -48,6 +48,22 @@ export async function getCampaignInsights(accountId, datePreset = 'last_30d', si
   return data.data || [];
 }
 
+// Reach/frequency DEDUPLICADO a nivel cuenta (como Ads Manager).
+// El reach no es aditivo entre campañas, por eso se pide a nivel account.
+export async function getAccountReach(accountId, datePreset = 'last_30d', since, until) {
+  const data = await metaGet(`${accountId}/insights`, {
+    fields: 'reach,frequency,impressions',
+    ...dateParams(datePreset, since, until),
+    level: 'account',
+    limit: 1
+  });
+  const row = (data.data || [])[0] || {};
+  return {
+    reach:     parseInt(row.reach || 0),
+    frequency: parseFloat(row.frequency || 0),
+  };
+}
+
 export async function getAdSetInsights(accountId, datePreset = 'last_7d', since, until) {
   const data = await metaGet(`${accountId}/insights`, {
     fields: 'adset_id,adset_name,campaign_name,impressions,clicks,spend,actions,cost_per_action_type,ctr,reach',
@@ -88,7 +104,7 @@ export async function getDailyInsights(accountId, datePreset = 'last_30d', since
   return data.data || [];
 }
 
-export function aggregateInsights(insights) {
+export function aggregateInsights(insights, accountReach) {
   const totals = { spend:0, impressions:0, clicks:0, linkClicks:0, leads:0, purchases:0, reach:0, waConv:0, revenue:0 };
   for (const row of insights) {
     totals.spend       += parseFloat(row.spend || 0);
@@ -116,7 +132,15 @@ export function aggregateInsights(insights) {
   totals.cpm       = totals.impressions > 0   ? ((totals.spend/totals.impressions)*1000).toFixed(2) : null;
   totals.cpc       = totals.linkClicks > 0    ? (totals.spend/totals.linkClicks).toFixed(2)      : null;
   totals.convRate  = totals.linkClicks > 0 && totals.leads > 0 ? ((totals.leads/totals.linkClicks)*100).toFixed(2) : null;
-  totals.frequency = totals.reach > 0         ? (totals.impressions/totals.reach).toFixed(2)     : null;
+  // Reach/frequency REAL deduplicado a nivel cuenta (Ads Manager). Sobrescribe la suma.
+  if (accountReach && accountReach.reach > 0) {
+    totals.reach     = accountReach.reach;
+    totals.frequency = accountReach.frequency
+      ? accountReach.frequency.toFixed(2)
+      : (totals.impressions/accountReach.reach).toFixed(2);
+  } else {
+    totals.frequency = totals.reach > 0 ? (totals.impressions/totals.reach).toFixed(2) : null;
+  }
   totals.roas      = totals.spend > 0 && totals.revenue > 0 ? (totals.revenue/totals.spend).toFixed(2) : null;
   return totals;
 }

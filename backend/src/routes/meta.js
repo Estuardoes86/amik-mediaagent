@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  getAdAccounts, getCampaigns, getCampaignInsights,
+  getAdAccounts, getCampaigns, getCampaignInsights, getAccountReach,
   getAdSetInsights, getPixels, getCreativeInsights,
   getDailyInsights, aggregateInsights, extractPrograma
 } from '../services/metaService.js';
@@ -21,9 +21,10 @@ metaRouter.get('/campaigns', async (req, res, next) => {
     const { accountId, datePreset = 'last_30d', since, until } = req.query;
     if (!accountId) return res.status(400).json({ error: 'accountId required' });
 
-    const [campaigns, insights] = await Promise.all([
+    const [campaigns, insights, accountReach] = await Promise.all([
       getCampaigns(accountId),
-      getCampaignInsights(accountId, datePreset, since, until)
+      getCampaignInsights(accountId, datePreset, since, until),
+      getAccountReach(accountId, datePreset, since, until).catch(() => null)
     ]);
 
     // Merge campaigns with insights by campaign_id
@@ -39,7 +40,7 @@ metaRouter.get('/campaigns', async (req, res, next) => {
       }))
       .filter(c => c.metrics && parseFloat(c.metrics.spend || 0) > 0);
 
-    const summary = aggregateInsights(insights);
+    const summary = aggregateInsights(insights, accountReach);
 
     res.json({ campaigns: enriched, summary });
   } catch (err) { next(err); }
