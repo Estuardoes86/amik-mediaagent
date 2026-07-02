@@ -42,6 +42,8 @@ export async function getCampaignInsights(accountId, datePreset = 'last_30d', si
   const data = await metaGet(`${accountId}/insights`, {
     fields: 'campaign_id,campaign_name,impressions,clicks,inline_link_clicks,spend,actions,cost_per_action_type,ctr,cpm,reach,frequency,unique_clicks,unique_ctr,action_values',
     ...dateParams(datePreset, since, until),
+    action_attribution_windows: JSON.stringify(['7d_click','1d_view']),
+    use_unified_attribution_setting: true,
     level: 'campaign',
     limit: 500
   });
