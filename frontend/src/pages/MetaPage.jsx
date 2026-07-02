@@ -86,9 +86,8 @@ export default function MetaPage() {
   const totalImpr  = campaigns.length > 0
     ? campaigns.reduce((s,c)=>s+getImpr(c),0)
     : i(summary.impressions||0);
-  const totalReach = campaigns.length > 0
-    ? campaigns.reduce((s,c)=>s+getReach(c),0)
-    : i(summary.reach||0);
+  // Reach SIEMPRE del summary: es deduplicado a nivel cuenta (no aditivo entre campañas)
+  const totalReach = i(summary.reach||0);
   const totalConv  = totalLeads + totalWA;
 
   /* ── Derived metrics ── */
@@ -98,7 +97,7 @@ export default function MetaPage() {
   const ctr      = totalImpr>0  ? ((totalClics/totalImpr)*100).toFixed(2) : '—';
   const cpm      = totalImpr>0  ? ((totalSpend/totalImpr)*1000).toFixed(2) : '—';
   const cpc      = totalClics>0 ? (totalSpend/totalClics).toFixed(2) : '—';
-  const freq     = totalReach>0 ? (totalImpr/totalReach).toFixed(2) : '—';
+  const freq     = summary.frequency ? parseFloat(summary.frequency).toFixed(2) : (totalReach>0 ? (totalImpr/totalReach).toFixed(2) : '—');
   const convRate = totalClics>0&&totalLeads>0 ? ((totalLeads/totalClics)*100).toFixed(2) : '—';
 
   /* ── Segment Lead Ads vs WhatsApp ── */
