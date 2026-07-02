@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { socialApi } from './api.js';
+import { socialApi } from '../api.js';
 
 /* ══════════════════════════════════════════════
    Publicaciones por red — cada plataforma su cuadro
